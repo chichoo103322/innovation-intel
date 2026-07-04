@@ -1,0 +1,83 @@
+请帮我部署一个 Python 自动化项目。项目文件夹就在当前工作目录下的 `innovation-intel` 文件夹中。请严格按照以下步骤一步一步完成，每完成一步向我确认。
+
+---
+
+## 第1步：安装 Python 依赖
+
+检查系统是否安装了 Python 3（运行 `python3 --version`），如果没有则引导我安装。
+然后进入 `innovation-intel` 目录，执行：
+
+```
+pip3 install python-docx openai httpx
+```
+
+---
+
+## 第2步：帮我获取 DeepSeek API Key
+
+1. 告诉我打开 https://platform.deepseek.com 注册账号
+2. 注册后在「API Keys」页面创建一个新的 API Key
+3. 让我把 API Key（sk- 开头的一串字符）发给你
+
+收到我给的 Key 后，帮我写入 `config/settings.yaml` 文件，找到 `deepseek_api_key` 这一行，填进去。
+
+---
+
+## 第3步：配置期号起始日期
+
+请**问我**："你希望第一期从哪天开始？（比如 2026-07-07）我会按工作日自动计算后续期号。"
+
+收到我的回答后，帮我把日期写入 `config/settings.yaml` 的 `first_issue_date` 字段。
+
+---
+
+## 第4步：配置桌面输出路径
+
+在 `config/settings.yaml` 中，找到 `desktop_output_dir`，根据当前系统改成正确的路径：
+
+- 如果是 Windows：`C:/Users/我的用户名/Desktop/创新情报`
+- 如果是 Mac：`/Users/我的用户名/Desktop/创新情报`
+
+---
+
+## 第5步：安装定时任务
+
+### Windows（以管理员身份运行 PowerShell）：
+```
+powershell -ExecutionPolicy Bypass -File innovation-intel/scripts/setup_scheduler.ps1
+```
+
+### Mac（终端执行）：
+```
+bash innovation-intel/scripts/setup_scheduler.sh
+```
+
+安装后确认三个定时任务已创建：
+- 日报：每个工作日 8:30
+- 周报：每周五 17:00
+- 月报：每月最后一天 17:00
+
+---
+
+## 第6步：测试运行
+
+执行一次完整日报生成，确认一切正常：
+
+```
+python3 innovation-intel/run_daily.py
+```
+
+等待 1-2 分钟，检查：
+1. 终端输出是否显示「搜索→分析→去重→生成→分发」全流程完成
+2. 桌面的「创新情报」文件夹下「日报」子目录里是否有刚生成的 Word 文档
+3. 打开 Word 文档检查排版是否正常
+
+---
+
+## 第7步：删除测试文件
+
+确认无误后，删除刚才测试生成的 Word 文件（包括 `innovation-intel/daily/` 目录下的），避免明天正式运行时被去重机制跳过。
+
+---
+
+以上全部完成后，系统就部署好了。之后每天自动运行，我只需要去桌面「创新情报」文件夹查看报告即可。

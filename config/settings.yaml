@@ -1,0 +1,118 @@
+# ============================================================
+# 常州创新·对标快讯 —— AI 自动化情报系统配置
+# 基于《AI + 常州市创新情报体系建设实施方案》
+# ============================================================
+
+# ---- DeepSeek API 配置 ----
+# 方式1: 设置环境变量 export DEEPSEEK_API_KEY="sk-..."
+# 方式2: 填在这里（注意不要提交到 git）
+# 注册地址: https://platform.deepseek.com （注册即送免费额度）
+deepseek_api_key: ""
+deepseek_model: "deepseek-chat"  # deepseek-chat / deepseek-v4-pro / deepseek-v4-flash
+
+# ---- 期号设置 ----
+# 设置第一期日期（如 2026-07-04），系统自动按工作日计算期号
+# 留空则使用自动递增计数器
+first_issue_date: "2026-07-05"
+
+# ---- 情报采集四大核心维度 ----
+dimensions:
+  - name: "各地科技委动态"
+    keywords:
+      - "科技委 会议 部署"
+      - "省委科技委 科技创新"
+      - "先进城市 科技委 动态"
+    target_cities: "北京 上海 深圳 广州 杭州 苏州 南京 合肥 武汉 成都 重庆 西安"
+    sources: "科技部 各省科技厅 市科技局 科创委"
+
+  - name: "上海（长三角）国创中心资讯"
+    keywords:
+      - "长三角 国际科技创新中心"
+      - "上海 重大创新 园区 平台"
+      - "长三角 科技创新 协同"
+    target_cities: "上海 苏州 杭州 南京 合肥 宁波 无锡"
+    sources: "上海科委 长三角科创平台 张江 苏州工业园区"
+
+  - name: "科创政策速览"
+    keywords:
+      - "科技创新政策 2026"
+      - "高新技术产业 扶持政策"
+      - "万亿城市 创新政策"
+    target_cities: "京津冀 长三角 大湾区 成都 重庆 武汉 西安 29座万亿GDP城市"
+    sources: "各市科技局 发改委 工信局"
+
+  - name: "改革举措"
+    keywords:
+      - "科技体制改革 措施"
+      - "科技金融 改革"
+      - "科技成果转化 改革"
+    target_cities: "京津冀 长三角 大湾区 成都 重庆 武汉 西安 29座万亿GDP城市"
+    sources: "科技部 各省科技厅 市科技局"
+
+# ---- 重点信息渠道（AI搜索时优先覆盖） ----
+priority_sources:
+  government:
+    - "科技部官方网站"
+    - "工信部官网"
+    - "国家发改委官网"
+    - "国家知识产权局官网"
+    - "中国科技成果网"
+    - "国家科技管理信息系统公共服务平台"
+    - "江苏省科技厅"
+    - "上海市科委"
+    - "浙江省科技厅"
+    - "广东省科技厅"
+  authoritative:
+    - "中国科学院"
+    - "中国工程院"
+    - "科技日报"
+    - "中国科技网"
+    - "创新长三角"
+    - "科创中国"
+    - "产业科创资讯"
+  think_tanks:
+    - "瞭望智库"
+    - "新华智库研究"
+    - "赛迪智库"
+    - "长城战略咨询"
+    - "火炬新声"
+    - "中国信通院CAICT"
+    - "甲子光年"
+    - "张通社研究院"
+    - "上海科技智库"
+    - "上海华略智库"
+    - "你好张江"
+    - "36氪研究院"
+
+# ---- 重点关注城市群 ----
+focus_regions:
+  - "京津冀城市群"
+  - "长三角城市群"
+  - "粤港澳大湾区城市群"
+  - "中西部核心城市：成都 重庆 武汉 西安"
+  - "29座GDP万亿城市"
+
+# ---- 日报生成规则 ----
+daily:
+  max_items_per_dimension: 3     # 每个维度最多3条
+  total_items_min: 8             # 日报最少8条
+  total_items_max: 12            # 最多12条
+  require_insight: true          # 每条必须有「创新洞察」
+  require_source_link: true      # 每条必须有信息来源链接
+  insight_focus: "结合常州基础与发展目标，进行分析，形成启示与建议"
+
+# ---- 周报生成规则 ----
+weekly:
+  generate_on: "friday"
+  report_name: "常州创新·对标快讯 周报"
+  include_trend_analysis: true
+  include_weekly_hotspots: true
+
+# ---- 月报生成规则 ----
+monthly:
+  generate_on: "last_day"
+  report_name: "常州创新·对标快讯 月报"
+  include_strategic_advice: true
+
+# ---- 输出路径（日报/周报/月报自动存入对应子目录） ----
+desktop_output_dir: "/Users/jzxzhou/Desktop/创新情报"
