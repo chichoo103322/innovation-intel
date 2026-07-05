@@ -345,10 +345,10 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
   * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 
   :root {{
-    --navy: #1a2a44;
-    --blue: #3b6cb4;
-    --gold: #8b6914;
-    --gold-bg: #fdf8f0;
+    --primary: #0a2655;
+    --blue: #1e50b4;
+    --accent: #2563eb;
+    --accent-bg: #eff6ff;
     --gray: #64748b;
     --light-gray: #e2e8f0;
     --bg: #f8fafc;
@@ -368,19 +368,19 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
   .cover {{
     width: 210mm; height: 297mm;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: linear-gradient(175deg, #f8fafc 0%, #f1f5f9 40%, #e8edf3 100%);
+    background: linear-gradient(175deg, #eff6ff 0%, #dce8fc 40%, #c5d8f8 100%);
     position: relative; overflow: hidden;
     page: cover;
   }}
   .cover::before {{
     content: '';
     position: absolute; top: 0; left: 0; right: 0; height: 5px;
-    background: var(--navy);
+    background: var(--primary);
   }}
   .cover::after {{
     content: '';
     position: absolute; bottom: 0; left: 0; right: 0; height: 5px;
-    background: var(--navy);
+    background: var(--primary);
   }}
   .cover-label {{
     font-size: 9pt; letter-spacing: 5px; text-transform: uppercase;
@@ -388,7 +388,7 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
     font-weight: 500;
   }}
   .cover-title {{
-    font-size: 30pt; font-weight: 700; color: var(--navy);
+    font-size: 30pt; font-weight: 700; color: var(--primary);
     letter-spacing: 3px; margin-bottom: 8px;
   }}
   .cover-divider {{
@@ -463,17 +463,17 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
   }}
 
   .item-insight {{
-    background: var(--gold-bg);
-    border-left: 3px solid var(--gold);
+    background: var(--accent-bg);
+    border-left: 3px solid var(--accent);
     border-radius: 0 4px 4px 0;
     padding: 8px 14px; margin: 8px 0 6px 0;
   }}
   .item-insight p {{
-    font-size: 9pt; color: #6b4f10;
+    font-size: 9pt; color: #1a3f8a;
     line-height: 1.8; display: inline;
   }}
   .insight-label {{
-    font-size: 8pt; font-weight: 700; color: var(--gold);
+    font-size: 8pt; font-weight: 700; color: var(--accent);
     letter-spacing: 2px; margin-right: 6px;
   }}
 
@@ -593,10 +593,10 @@ def build_daily_html(sections: list[dict], date_cn: str, issue_no: int = 1, tota
   * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 
   :root {{
-    --navy: #1a2a44;
-    --blue: #3b6cb4;
-    --gold: #8b6914;
-    --gold-bg: #fdf8f0;
+    --primary: #0a2655;
+    --blue: #1e50b4;
+    --accent: #2563eb;
+    --accent-bg: #eff6ff;
     --gray: #64748b;
     --light-gray: #e2e8f0;
     --bg: #f8fafc;
@@ -612,11 +612,11 @@ def build_daily_html(sections: list[dict], date_cn: str, issue_no: int = 1, tota
   /* ── Title block ── */
   .title-block {{
     text-align: center; padding: 20mm 0 8mm 0;
-    border-bottom: 2px solid var(--navy);
+    border-bottom: 2px solid var(--primary);
     margin-bottom: 16px;
   }}
   .title-block h1 {{
-    font-size: 20pt; font-weight: 700; color: var(--navy);
+    font-size: 20pt; font-weight: 700; color: var(--primary);
     letter-spacing: 2px; margin-bottom: 4px;
   }}
   .title-block .sub {{
@@ -649,26 +649,26 @@ def build_daily_html(sections: list[dict], date_cn: str, issue_no: int = 1, tota
   .cover {{
     width: 210mm; height: 297mm;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: linear-gradient(175deg, #f8fafc 0%, #f1f5f9 40%, #e8edf3 100%);
+    background: linear-gradient(175deg, #eff6ff 0%, #dce8fc 40%, #c5d8f8 100%);
     position: relative; overflow: hidden;
     page: cover;
   }}
   .cover::before {{
     content: '';
     position: absolute; top: 0; left: 0; right: 0; height: 5px;
-    background: var(--navy);
+    background: var(--primary);
   }}
   .cover::after {{
     content: '';
     position: absolute; bottom: 0; left: 0; right: 0; height: 5px;
-    background: var(--navy);
+    background: var(--primary);
   }}
   .cover-label {{
     font-size: 9pt; letter-spacing: 5px; text-transform: uppercase;
     color: var(--blue); margin-bottom: 24px; font-weight: 500;
   }}
   .cover-title {{
-    font-size: 30pt; font-weight: 700; color: var(--navy);
+    font-size: 30pt; font-weight: 700; color: var(--primary);
     letter-spacing: 3px; margin-bottom: 8px;
   }}
   .cover-divider {{
@@ -711,17 +711,17 @@ def build_daily_html(sections: list[dict], date_cn: str, issue_no: int = 1, tota
   }}
 
   .item-insight {{
-    background: var(--gold-bg);
-    border-left: 3px solid var(--gold);
+    background: var(--accent-bg);
+    border-left: 3px solid var(--accent);
     border-radius: 0 4px 4px 0;
     padding: 8px 14px; margin: 8px 0 6px 0;
   }}
   .item-insight p {{
-    font-size: 9pt; color: #6b4f10;
+    font-size: 9pt; color: #1a3f8a;
     line-height: 1.8; display: inline;
   }}
   .insight-label {{
-    font-size: 8pt; font-weight: 700; color: var(--gold);
+    font-size: 8pt; font-weight: 700; color: var(--accent);
     letter-spacing: 2px; margin-right: 6px;
   }}
 
@@ -1123,10 +1123,10 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
   * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 
   :root {{
-    --navy: #1a2a44;
-    --blue: #3b6cb4;
-    --gold: #8b6914;
-    --gold-bg: #fdf8f0;
+    --primary: #0a2655;
+    --blue: #1e50b4;
+    --accent: #2563eb;
+    --accent-bg: #eff6ff;
     --gray: #64748b;
     --light-gray: #e2e8f0;
     --bg: #f8fafc;
@@ -1143,26 +1143,26 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
   .cover {{
     width: 210mm; height: 297mm;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: linear-gradient(175deg, #f8fafc 0%, #f1f5f9 40%, #e8edf3 100%);
+    background: linear-gradient(175deg, #eff6ff 0%, #dce8fc 40%, #c5d8f8 100%);
     position: relative; overflow: hidden;
     page: cover;
   }}
   .cover::before {{
     content: '';
     position: absolute; top: 0; left: 0; right: 0; height: 5px;
-    background: var(--navy);
+    background: var(--primary);
   }}
   .cover::after {{
     content: '';
     position: absolute; bottom: 0; left: 0; right: 0; height: 5px;
-    background: var(--navy);
+    background: var(--primary);
   }}
   .cover-label {{
     font-size: 9pt; letter-spacing: 5px; text-transform: uppercase;
     color: var(--blue); margin-bottom: 24px; font-weight: 500;
   }}
   .cover-title {{
-    font-size: 30pt; font-weight: 700; color: var(--navy);
+    font-size: 30pt; font-weight: 700; color: var(--primary);
     letter-spacing: 3px; margin-bottom: 8px;
   }}
   .cover-divider {{
@@ -1234,17 +1234,17 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
   }}
 
   .item-insight {{
-    background: var(--gold-bg);
-    border-left: 3px solid var(--gold);
+    background: var(--accent-bg);
+    border-left: 3px solid var(--accent);
     border-radius: 0 4px 4px 0;
     padding: 8px 14px; margin: 8px 0 6px 0;
   }}
   .item-insight p {{
-    font-size: 9pt; color: #6b4f10;
+    font-size: 9pt; color: #1a3f8a;
     line-height: 1.8; display: inline;
   }}
   .insight-label {{
-    font-size: 8pt; font-weight: 700; color: var(--gold);
+    font-size: 8pt; font-weight: 700; color: var(--accent);
     letter-spacing: 2px; margin-right: 6px;
   }}
 
@@ -1335,9 +1335,28 @@ def generate_monthly(api_key: str = None, output_path: str = None, sample: bool 
     print("[PDF] 渲染中 (Chrome headless)...")
     html_to_pdf(html, pdf_path)
 
+    # 同步到桌面
+    _sync_to_desktop(pdf_path, f"创新常州·对标快讯_月报_{date_fn}.pdf")
+    _sync_to_desktop(html_path, f"月报_{date_fn}.html")
+
     print(f"[完成] HTML: {html_path}")
     print(f"[完成] PDF:  {pdf_path}")
     return pdf_path
+
+
+# ── 桌面同步 ────────────────────────────────────────────
+
+def _sync_to_desktop(src_path: Path, filename: str):
+    """将报告复制到桌面 创新情报 目录"""
+    try:
+        desktop_dir = Path("/Users/jzxzhou/Desktop/创新情报")
+        desktop_dir.mkdir(parents=True, exist_ok=True)
+        dst = desktop_dir / filename
+        import shutil
+        shutil.copy2(str(src_path), str(dst))
+        print(f"[桌面] {dst}")
+    except Exception as e:
+        print(f"[桌面] 复制失败: {e}")
 
 
 # ── 主入口 ────────────────────────────────────────────
@@ -1372,6 +1391,10 @@ def generate(api_key: str = None, output_path: str = None, sample: bool = False)
     pdf_path = Path(output_path) if output_path else PROJECT_DIR / "weekly" / f"创新常州·对标快讯_周报_{date_fn}.pdf"
     print("[PDF] 渲染中 (Chrome headless)...")
     html_to_pdf(html, pdf_path)
+
+    # 同步到桌面
+    _sync_to_desktop(pdf_path, f"创新常州·对标快讯_周报_{date_fn}.pdf")
+    _sync_to_desktop(html_path, f"周报_{date_fn}.html")
 
     print(f"[完成] HTML: {html_path}")
     print(f"[完成] PDF:  {pdf_path}")
