@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 《创新常州·对标快讯》日报全自动流水线
-搜索 → 分析 → 生成 Word → 去重 → 分发
+搜索 → 分析 → HTML → PDF → 去重 → 分发
 
 使用 DeepSeek API（内置联网搜索），国内直连，无需 Anthropic API Key。
 交付方只需注册 DeepSeek 获取 API Key（注册即送免费额度，约 ¥1/百万token）。
@@ -121,21 +121,23 @@ SYSTEM_PROMPT = """你是一位资深科技创新情报分析师，服务于常�
    - 第三优先：媒体智库（36kr.com, pedaily.cn, ccidconsulting.com 等）
 3. **每板块至少1条来自 .gov.cn 政务官方**
 4. **内容质量要求**：
-   - 摘要控制在120-180字，直接点出核心信息与关键数据，删除铺垫性、背景性冗余描述
+   - 摘要80-120字，用短句。只写核心事实：谁做了什么、金额多少、时间节点、关键数据。砍掉所有背景铺垫和评价性语言
    - 每条必须有差异化价值，同一板块内避免选题雷同或观点重复
    - 优先选取对常州有直接对标价值的信息（同类城市做法、可复制的政策工具、可对接的平台资源）
-5. **每条必须有「创新洞察」**：80-120字，必须具体、可操作、紧扣常州实际。不是泛泛而谈"值得借鉴"，而是点明常州可以怎么做、对接什么资源、抢占什么先机。
+5. **每条必须有「创新洞察」**：80-120字，点明常州可做什么+怎么做+对接什么资源。禁止"值得借鉴""有参考价值"等空话。
 6. **每条必须有信息来源链接（URL）**
 
-## 创新洞察 · 常州重点关切
+## 创新洞察 · 常州关切方向（作为分析视角丰富洞察内容，而非替代4个搜索维度）
 
-撰写创新洞察时，优先结合以下常州正在推进的重点方向，将外部信息转化为具体可落地的建议：
+撰写创新洞察时，可在原有分析框架基础上，适当结合以下常州重点方向，使建议更具体：
 
-- **AI 基础设施与产业园**：常州 AIDC（人工智能数据中心）、算力基建、液冷技术应用、AI 产业园区布局，"算力+硬件+场景+生态"全链条
-- **前沿产业赛道**：具身智能、未来存储、未来能源——关注各地政策布局、龙头企业动向、园区招商竞争态势
-- **三名工程**：名园（中以常州创新园等）、名院（科教城、高校院所）、名企（理想、比亚迪、中创新航等龙头）——关注如何借助外部创新资源赋能三名的协同联动
-- **双高协同**：高新区与高水平大学协同创新——关注各地校地合作新模式、新型研发机构建设经验
-- **科技创新政策**：研发补贴、人才引进、金融支持、场景开放等政策工具创新
+- **AI 基础设施**：AIDC、算力基建、液冷技术、AI 产业园布局，"算力+硬件+场景+生态"全链条
+- **前沿产业**：具身智能、未来存储、未来能源等赛道的竞争动态与政策布局
+- **三名工程**（名园名院名企）：中以常州创新园、科教城、龙头企业如何在外部创新资源中借力
+- **双高协同**：高新区与高水平大学协同创新，校地合作新模式、新型研发机构经验
+- **政策工具**：研发补贴、人才引进、金融支持、场景开放等创新政策
+
+注意：以上是分析视角的丰富，不是每条的硬性要求。核心仍然是4个维度的情报采集与分析。对不相关的条目，不需要强行关联。
 
 ## 搜索维度
 
@@ -166,8 +168,8 @@ SYSTEM_PROMPT = """你是一位资深科技创新情报分析师，服务于常�
         {
           "title": "信息标题",
           "date": "2026.7.X",
-          "summary": "120-180字内容摘要，直击核心信息与关键数据，不做铺垫",
-          "insight": "80-120字创新洞察，结合常州重点关切，给出具体可操作建议",
+          "summary": "80-120字，用短句直击核心。只写谁+做了什么+关键数据+时间节点，不铺垫不评价",
+          "insight": "80-120字，点明常州可做什么+怎么做+对接什么资源，具体可操作，禁止空话套话",
           "source": "来源机构名称",
           "url": "原文URL"
         }
@@ -361,9 +363,10 @@ def main():
 
     # 今天已生成过则跳过（配合 launchd 高频触发，避免重复跑API）
     daily_dir = PROJECT_DIR / "daily"
-    today_fn = f'创新常州·对标快讯_{today.strftime("%Y-%m-%d")}.docx'
-    if (daily_dir / today_fn).exists() and not args.force:
-        print(f"[跳过] 今日日报已存在: {today_stem}.html/docx")
+    today_stem = today.strftime("%Y-%m-%d")
+    today_pdf = daily_dir / f'创新常州·对标快讯_{today_stem}.pdf'
+    if today_pdf.exists() and not args.force:
+        print(f"[跳过] 今日日报已存在: {today_pdf}")
         return
 
     config = load_config()
@@ -406,20 +409,26 @@ def main():
                 print(f"      URL: {item.get('url', '')}")
         return
 
-    # 3. 生成 Word 文档
+    # 3. 生成 HTML → PDF
     sys.path.insert(0, str(SCRIPT_DIR))
-    from generate_docx import generate_daily_from_data
+    from generate_html_pdf import build_daily_html, html_to_pdf
 
-    docx_path = generate_daily_from_data(sections)
+    date_cn = today.strftime("%Y年%m月%d日")
+    html = build_daily_html(sections, date_cn)
+    pdf_path = html_to_pdf(html, today_pdf)
+
+    # 保存 HTML
+    html_path = daily_dir / f'创新常州·对标快讯_{today_stem}.html'
+    html_path.write_text(html, encoding="utf-8")
 
     # 4. 去重记录
     mark_dedup(sections)
 
     # 5. 分发
     if not args.skip_distribute:
-        do_distribute(str(docx_path))
+        do_distribute(str(pdf_path))
 
-    print(f"\n[完成] 今日日报已生成并分发: {docx_path}")
+    print(f"\n[完成] 今日日报已生成并分发: {pdf_path}")
     print("=" * 60)
 
 

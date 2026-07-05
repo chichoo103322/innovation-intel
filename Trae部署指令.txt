@@ -8,22 +8,35 @@
 然后进入 `innovation-intel` 目录，执行：
 
 ```
-pip3 install python-docx openai httpx
+pip3 install openai python-docx
 ```
 
 ---
 
-## 第2步：帮我获取 DeepSeek API Key
+## 第2步：确认 Chrome 浏览器已安装
+
+项目使用 Chrome 无头模式做 HTML → PDF 渲染，需要系统已安装 Google Chrome。
+运行以下命令确认：
+- Mac: `ls "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"`
+- Windows: `dir "C:\Program Files\Google\Chrome\Application\chrome.exe"`
+
+如果未安装，引导我去 https://www.google.com/chrome/ 下载安装。
+
+---
+
+## 第3步：帮我获取 DeepSeek API Key
 
 1. 告诉我打开 https://platform.deepseek.com 注册账号
 2. 注册后在「API Keys」页面创建一个新的 API Key
 3. 让我把 API Key（sk- 开头的一串字符）发给你
 
-收到我给的 Key 后，帮我写入 `config/settings.yaml` 文件，找到 `deepseek_api_key` 这一行，填进去。
+收到我给的 Key 后，帮我设置环境变量或写入 `config/settings.yaml` 文件。
+
+> 推荐使用环境变量：`export DEEPSEEK_API_KEY="sk-..."`
 
 ---
 
-## 第3步：配置期号起始日期
+## 第4步：配置期号起始日期
 
 请**问我**："你希望第一期从哪天开始？（比如 2026-07-07）我会按工作日自动计算后续期号。"
 
@@ -31,53 +44,65 @@ pip3 install python-docx openai httpx
 
 ---
 
-## 第4步：配置桌面输出路径
+## 第5步：配置桌面输出路径
 
 在 `config/settings.yaml` 中，找到 `desktop_output_dir`，根据当前系统改成正确的路径：
 
-- 如果是 Windows：`C:/Users/我的用户名/Desktop/创新情报`
-- 如果是 Mac：`/Users/我的用户名/Desktop/创新情报`
+- Windows：`C:/Users/我的用户名/Desktop/创新情报`
+- Mac：`/Users/我的用户名/Desktop/创新情报`
+
+报告会自动存入子目录：`日报/` `周报/` `月报/`
 
 ---
 
-## 第5步：安装定时任务
-
-### Windows（以管理员身份运行 PowerShell）：
-```
-powershell -ExecutionPolicy Bypass -File innovation-intel/scripts/setup_scheduler.ps1
-```
+## 第6步：安装定时任务
 
 ### Mac（终端执行）：
 ```
 bash innovation-intel/scripts/setup_scheduler.sh
 ```
 
-安装后确认三个定时任务已创建：
-- 日报：每个工作日 8:30
+### Windows（以管理员身份运行 PowerShell）：
+```
+powershell -ExecutionPolicy Bypass -File innovation-intel/scripts/setup_scheduler.ps1
+```
+
+安装后确认定时任务：
+- 日报：每 30 分钟自动检测（工作日生成，已生成则跳过）
 - 周报：每周五 17:00
 - 月报：每月最后一天 17:00
 
 ---
 
-## 第6步：测试运行
+## 第7步：测试运行
 
-执行一次完整日报生成，确认一切正常：
+执行一次完整日报生成（联网搜索 → 分析 → HTML → PDF → 桌面分发）：
 
 ```
 python3 innovation-intel/run_daily.py
 ```
 
-等待 1-2 分钟，检查：
-1. 终端输出是否显示「搜索→分析→去重→生成→分发」全流程完成
-2. 桌面的「创新情报」文件夹下「日报」子目录里是否有刚生成的 Word 文档
-3. 打开 Word 文档检查排版是否正常
+测试周报：
+```
+python3 innovation-intel/scripts/generate_html_pdf.py --sample
+```
+
+测试月报：
+```
+python3 innovation-intel/scripts/generate_html_pdf.py --monthly --sample
+```
+
+等待 1-3 分钟，检查：
+1. 终端输出显示「搜索→去重→生成→分发」全流程完成
+2. 桌面「创新情报」文件夹下对应子目录有 PDF 文件
+3. 打开 PDF 检查封面、蓝色小标题、排版是否正常
 
 ---
 
-## 第7步：删除测试文件
+## 第8步：删除测试文件
 
-确认无误后，删除刚才测试生成的 Word 文件（包括 `innovation-intel/daily/` 目录下的），避免明天正式运行时被去重机制跳过。
+确认无误后，删除测试生成的 PDF 和 HTML 文件（`daily/` `weekly/` `monthly/` 目录下），避免明天正式运行时被去重机制跳过。
 
 ---
 
-以上全部完成后，系统就部署好了。之后每天自动运行，我只需要去桌面「创新情报」文件夹查看报告即可。
+以上全部完成后，系统就部署好了。之后每天自动运行，只需去桌面「创新情报」文件夹查看 PDF 报告即可。
