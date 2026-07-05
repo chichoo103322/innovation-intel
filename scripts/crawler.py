@@ -6,8 +6,18 @@
 采集策略：
   1. 抓取各大部委/省市 .gov.cn 官网的新闻列表页
   2. 提取标题、日期、摘要、链接
-  3. 按4大维度分类归档
+  3. 按4大维度分类归档（关键词匹配）
   4. 去重、时效过滤
+
+🆕 搜索经验固化（2026.7.5）：
+  - 政府网站信息按"业务实义词"组织，不按抽象分类标签。搜"概念验证中心"
+    比搜"管理办法"命中率高得多。
+  - 必须按"城市名 × 业务实义词"逐个交叉搜索，不得笼统搜"万亿城市"。
+  - 业务实义词轮换清单（每次 crawl 至少覆盖6个）：
+    成果转化平台、概念验证中心、赋权改革、职务科技成果、算力创新券、
+    科技保险、先投后股、揭榜挂帅、AI科研、科学智能、研发计划
+  - 上海信息来源不能只靠 stcsm.sh.gov.cn，必须同时爬 shanghai.gov.cn
+    新闻页、js.gov.cn 长三角专题。
 
 用法:
     from crawler import crawl_all, SourceItem
@@ -105,8 +115,9 @@ SOURCE_CONFIGS = [
         "urls": [
             "https://stcsm.sh.gov.cn/zwgk/kjzj/",
             "https://stcsm.sh.gov.cn/zwgk/gsgg/",
+            "https://stcsm.sh.gov.cn/zwgk/kjzc/",     # 🆕 科技政策
         ],
-        "list_selector": "ul.list li, .news-list li",
+        "list_selector": "ul.list li, .news-list li, .zwgk_list li",
         "title_selector": "a",
         "date_selector": "span.date, span.time",
         "date_format": None,
@@ -238,6 +249,18 @@ SOURCE_CONFIGS = [
         "date_format": None,
     },
     {
+        "name": "武汉市科技局",
+        "domain": "wuhan.gov.cn",
+        "score": 100,
+        "urls": [
+            "http://kjj.wuhan.gov.cn/zwgk/tzgg/",  # 通知公告（科技政策集中发布）
+        ],
+        "list_selector": "ul.list li, .news-list li, .list_main li",
+        "title_selector": "a",
+        "date_selector": "span.date, span.time",
+        "date_format": None,
+    },
+    {
         "name": "合肥市人民政府",
         "domain": "hefei.gov.cn",
         "score": 100,
@@ -323,7 +346,156 @@ SOURCE_CONFIGS = [
         "date_selector": "span.date, span.time, .time",
         "date_format": None,
     },
-    # ── 媒体智库（70分）─
+    # ── 万亿城市·科技局/科创委政策页（100分，核心政策来源）──
+    {
+        "name": "苏州市科技局",
+        "domain": "suzhou.gov.cn",
+        "score": 100,
+        "urls": [
+            "http://kjj.suzhou.gov.cn/col/col16205/index.html",  # 通知公告
+            "http://kjj.suzhou.gov.cn/col/col16206/index.html",  # 政策文件
+        ],
+        "list_selector": "ul.list li, .news_list li, .list_main li",
+        "title_selector": "a",
+        "date_selector": "span.date, span.time",
+        "date_format": None,
+    },
+    {
+        "name": "深圳市科创局",
+        "domain": "sz.gov.cn",
+        "score": 100,
+        "urls": [
+            "https://stic.sz.gov.cn/xxgk/tzgg/",  # 通知公告
+            "https://stic.sz.gov.cn/xxgk/zcfgj/",  # 政策文件
+        ],
+        "list_selector": "ul.list li, .news-list li, .list_main li",
+        "title_selector": "a",
+        "date_selector": "span.date, span.time",
+        "date_format": None,
+    },
+    {
+        "name": "杭州市科技局",
+        "domain": "hangzhou.gov.cn",
+        "score": 100,
+        "urls": [
+            "https://kj.hangzhou.gov.cn/col/col1229558583/index.html",  # 通知公告
+        ],
+        "list_selector": "ul.list li, .news-list li, .list_main li",
+        "title_selector": "a",
+        "date_selector": "span.date, span.time",
+        "date_format": None,
+    },
+    {
+        "name": "成都市科技局",
+        "domain": "chengdu.gov.cn",
+        "score": 100,
+        "urls": [
+            "https://cdst.chengdu.gov.cn/cdst/zwgg/zwgg.shtml",  # 政务公告
+        ],
+        "list_selector": "ul.list li, .news-list li, .list_main li",
+        "title_selector": "a",
+        "date_selector": "span.date, span.time",
+        "date_format": None,
+    },
+    {
+        "name": "宁波市科技局",
+        "domain": "ningbo.gov.cn",
+        "score": 100,
+        "urls": [
+            "https://kjj.ningbo.gov.cn/col/col1229906766/index.html",  # 通知公告
+        ],
+        "list_selector": "ul.list li, .news-list li, .list_main li",
+        "title_selector": "a",
+        "date_selector": "span.date, span.time",
+        "date_format": None,
+    },
+    {
+        "name": "安徽省科技厅",
+        "domain": "ah.gov.cn",
+        "score": 100,
+        "urls": [
+            "https://kjt.ah.gov.cn/kjzx/tzgg/",  # 通知公告（覆盖合肥等安徽城市）
+        ],
+        "list_selector": "ul.list li, .news-list li, .list_main li",
+        "title_selector": "a",
+        "date_selector": "span.date, span.time",
+        "date_format": None,
+    },
+    {
+        "name": "山东省科技厅",
+        "domain": "shandong.gov.cn",
+        "score": 100,
+        "urls": [
+            "http://kjt.shandong.gov.cn/col/col94187/index.html",  # 通知公告（覆盖济南/青岛等）
+        ],
+        "list_selector": "ul.list li, .news-list li, .list_main li",
+        "title_selector": "a",
+        "date_selector": "span.date, span.time",
+        "date_format": None,
+    },
+    {
+        "name": "陕西省科技厅",
+        "domain": "shaanxi.gov.cn",
+        "score": 100,
+        "urls": [
+            "https://kjt.shaanxi.gov.cn/col/col261184/index.html",  # 通知公告（覆盖西安）
+        ],
+        "list_selector": "ul.list li, .news-list li, .list_main li",
+        "title_selector": "a",
+        "date_selector": "span.date, span.time",
+        "date_format": None,
+    },
+    # ── 省级发改委/工信厅（100分，政策发布主渠道）──
+    {
+        "name": "江苏省发改委",
+        "domain": "jiangsu.gov.cn",
+        "score": 100,
+        "urls": [
+            "http://fzggw.jiangsu.gov.cn/col/col83748/index.html",  # 通知公告
+        ],
+        "list_selector": "ul.list li, .news-list li, .list_main li",
+        "title_selector": "a",
+        "date_selector": "span.date, span.time",
+        "date_format": None,
+    },
+    {
+        "name": "江苏省工信厅",
+        "domain": "jiangsu.gov.cn",
+        "score": 100,
+        "urls": [
+            "http://gxt.jiangsu.gov.cn/col/col6279/index.html",  # 通知公告
+        ],
+        "list_selector": "ul.list li, .news-list li, .list_main li",
+        "title_selector": "a",
+        "date_selector": "span.date, span.time",
+        "date_format": None,
+    },
+    # ── 权威平台补充（85分）──
+    {
+        "name": "科技日报·政策解读",
+        "domain": "stdaily.com",
+        "score": 85,
+        "urls": [
+            "http://www.stdaily.com/index/keji/keji.shtml",  # 科技频道
+        ],
+        "list_selector": "ul.list li, .news-list li, .item, .list_con li",
+        "title_selector": "a",
+        "date_selector": "span.date, span.time, .time",
+        "date_format": None,
+    },
+    {
+        "name": "经济参考报",
+        "domain": "jjckb.cn",
+        "score": 70,
+        "urls": [
+            "https://www.jjckb.cn/",  # 科技财经政策报道
+        ],
+        "list_selector": "ul.list li, .news-list li, .item",
+        "title_selector": "a",
+        "date_selector": "span.date, span.time, .time",
+        "date_format": None,
+    },
+    # ── 媒体智库（70分）──
     {
         "name": "新华网",
         "domain": "xinhuanet.com",
@@ -596,19 +768,42 @@ def _classify_dimension(item: SourceItem):
     dim_keywords = {
         "各地科技委动态": ["科技委", "省委科技", "市委科技", "科创委", "科技委员会"],
         "上海（长三角）国创中心资讯": [
+            # 机构名/平台名
             "长三角", "G60", "张江", "国创中心", "沿沪宁",
-            "国际科技创新中心", "长三角国家技术创新中心"
+            "国际科技创新中心", "长三角国家技术创新中心",
+            # 业务实义词（上海及长三角科创实际高频用语）
+            "长三角市场监管", "联合发文", "科创19条", "标准互认",
+            "知识产权协同", "人才互通", "跨区域", "一体化",
+            "长三角国际标准", "高价值专利", "统一大市场",
+            # 对接上海动态
+            "对接上海", "融入长三角", "沪苏", "沪浙",
         ],
         "科创政策速览": [
+            # 政策类型词
             "政策", "行动计划", "方案", "意见", "措施", "补贴",
+            "管理办法", "实施意见", "若干措施", "试点办法",
+            # 产业实义词
             "算力", "AIDC", "具身智能", "人形机器人", "氢能",
             "储能", "钙钛矿", "液冷", "AI数据中心", "智算中心",
             "先导产业", "未来产业", "产业规划", "扶持",
+            "低空经济", "商业航天", "工业母机",
+            # 业务实义词（政策文本中实际出现的高频词）
+            "科学智能", "算力创新券", "概念验证", "成果转化平台",
+            "赋权改革", "职务科技成果", "先投后股", "揭榜挂帅",
+            "研发计划", "孵化器", "创新联合体", "科技型企业",
+            # 产业赛道
+            "人工智能", "AI赋能", "大模型", "工业软件",
         ],
         "改革举措": [
+            # 传统改革关键词
             "改革", "科技成果转化", "先投后股", "科技金融",
             "新型研发机构", "校地合作", "三名工程", "双高协同",
             "科技保险", "投贷联动", "揭榜挂帅", "赋权改革",
+            # 新增业务实义词
+            "概念验证中心", "中试平台", "职务科技成果",
+            "创新券", "算力券", "先使用后付费", "拨投结合",
+            "拨改投", "技术托管", "赋权", "成果赋权",
+            "科技金融研究", "科技信贷", "知识产权证券化",
         ],
     }
 
