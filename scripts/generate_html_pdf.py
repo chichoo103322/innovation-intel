@@ -972,6 +972,7 @@ def get_daily_data(api_key: str = None, sample: bool = False) -> dict:
           "date": "YYYY.M.D（🔴只能填正文事件实际发生日期，严禁填网页发布日期。素材中区分'事件日期'与'网页发布'，只取事件日期。事件日期缺失填'近日'）",
           "summary": "80-120字摘要（仅基于原文事实）",
           "insight": "120-160字创新洞察（严格遵循6维度规范）",
+          "source": "来源机构名称（全称）",
           "url": "🔴必填！从素材中复制原文URL，不得为空、不得编造、不得省略"
         }}
       ]
@@ -1326,8 +1327,11 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
             date_i = item.get("date", "")
             summary = item.get("summary", "")
             insight = item.get("insight") or item.get("innovation_insight") or ""
+            source = item.get("source", "")
             url = item.get("url", "")
-            source_link_html = f'<p class="item-source-link">信息来源：<a href="{url}">{url}</a></p>' if url else ""
+            source_link_html = ""
+            if url:
+                source_link_html = f'<p class="item-source-link">信息来源：<a href="{url}">{url}</a></p>'
             items_html += f"""
         <div class="news-item">
           <h3 class="item-title">{title}<span class="item-date">{date_i}</span></h3>
@@ -1336,6 +1340,7 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
             <span class="insight-label">创新洞察</span>
             <p>{insight}</p>
           </div>
+          <p class="item-source">{source}</p>
           {source_link_html}
         </div>"""
 
@@ -1464,6 +1469,10 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
     letter-spacing: 1px; margin-right: 4px;
   }}
 
+  .item-source {{
+    font-size: 6.5pt; color: #94a3b8; text-align: right;
+    margin-top: 2px;
+  }}
   .item-source-link {{
     font-size: 6.5pt; color: #94a3b8; margin-top: 1px;
     word-break: break-all;
@@ -2011,8 +2020,11 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
             date_i = item.get("date", "")
             summary = item.get("summary", "")
             insight = item.get("innovation_insight") or item.get("insight") or ""
+            source = item.get("source", "")
             url = item.get("url", "")
-            source_link_html = f'<p class="item-source-link">信息来源：<a href="{url}">{url}</a></p>' if url else ""
+            source_link_html = ""
+            if url:
+                source_link_html = f'<p class="item-source-link">信息来源：<a href="{url}">{url}</a></p>'
             items_html += f"""
         <div class="news-item">
           <h3 class="item-title">{title}<span class="item-date">{date_i}</span></h3>
@@ -2021,6 +2033,7 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
             <span class="insight-label">创新洞察</span>
             <p>{insight}</p>
           </div>
+          <p class="item-source">{source}</p>
           {source_link_html}
         </div>"""
 
@@ -2162,6 +2175,10 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
     letter-spacing: 1px; margin-right: 4px;
   }}
 
+  .item-source {{
+    font-size: 6.5pt; color: #94a3b8; text-align: right;
+    margin-top: 2px;
+  }}
   .item-source-link {{
     font-size: 6.5pt; color: #94a3b8; margin-top: 1px;
     word-break: break-all;
