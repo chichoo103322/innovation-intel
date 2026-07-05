@@ -7,8 +7,8 @@
 # 方式1: 设置环境变量 export DEEPSEEK_API_KEY="sk-..."
 # 方式2: 填在这里（注意不要提交到 git）
 # 注册地址: https://platform.deepseek.com （注册即送免费额度）
-deepseek_api_key: ""
-deepseek_model: "deepseek-chat"  # deepseek-chat / deepseek-v4-pro / deepseek-v4-flash
+deepseek_api_key: "sk-6b7526c07b5f48bf820f65176442040a"
+deepseek_model: "deepseek-v4-pro"  # deepseek-v4-pro for highest factual accuracy
 
 # ---- 期号设置 ----
 # 设置第一期日期（如 2026-07-04），系统自动按工作日计算期号

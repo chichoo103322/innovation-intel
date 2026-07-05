@@ -291,7 +291,7 @@ def generate_weekly_content(api_key: str) -> dict:
     client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
 
     response = client.chat.completions.create(
-        model="deepseek-chat",
+        model="deepseek-v4-pro",
         messages=[
             {"role": "system", "content": system},
             {"role": "user", "content": f"本周：{week_start} 至 {week_end}。请联网搜索，按4个标准板块生成周报JSON。创新洞察可自然结合常州重点方向（AIDC、具身智能、液冷、未来能源/存储、三名工程、双高协同），但不需每条强行关联。"},
