@@ -10,6 +10,7 @@ from pathlib import Path
 from datetime import date
 
 PROJECT_DIR = Path(__file__).parent.parent
+SCRIPT_DIR = Path(__file__).parent
 
 # ── 内容获取 ──────────────────────────────────────────
 
@@ -347,8 +348,8 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
   :root {{
     --primary: #0a2655;
     --blue: #1e50b4;
-    --accent: #2563eb;
-    --accent-bg: #eff6ff;
+    --accent: #8b6914;
+    --accent-bg: #fdf8f0;
     --gray: #64748b;
     --light-gray: #e2e8f0;
     --bg: #f8fafc;
@@ -469,7 +470,7 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
     padding: 8px 14px; margin: 8px 0 6px 0;
   }}
   .item-insight p {{
-    font-size: 9pt; color: #1a3f8a;
+    font-size: 9pt; color: #6b4f10;
     line-height: 1.8; display: inline;
   }}
   .insight-label {{
@@ -595,8 +596,8 @@ def build_daily_html(sections: list[dict], date_cn: str, issue_no: int = 1, tota
   :root {{
     --primary: #0a2655;
     --blue: #1e50b4;
-    --accent: #2563eb;
-    --accent-bg: #eff6ff;
+    --accent: #8b6914;
+    --accent-bg: #fdf8f0;
     --gray: #64748b;
     --light-gray: #e2e8f0;
     --bg: #f8fafc;
@@ -717,7 +718,7 @@ def build_daily_html(sections: list[dict], date_cn: str, issue_no: int = 1, tota
     padding: 8px 14px; margin: 8px 0 6px 0;
   }}
   .item-insight p {{
-    font-size: 9pt; color: #1a3f8a;
+    font-size: 9pt; color: #6b4f10;
     line-height: 1.8; display: inline;
   }}
   .insight-label {{
@@ -1125,8 +1126,8 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
   :root {{
     --primary: #0a2655;
     --blue: #1e50b4;
-    --accent: #2563eb;
-    --accent-bg: #eff6ff;
+    --accent: #8b6914;
+    --accent-bg: #fdf8f0;
     --gray: #64748b;
     --light-gray: #e2e8f0;
     --bg: #f8fafc;
@@ -1240,7 +1241,7 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
     padding: 8px 14px; margin: 8px 0 6px 0;
   }}
   .item-insight p {{
-    font-size: 9pt; color: #1a3f8a;
+    font-size: 9pt; color: #6b4f10;
     line-height: 1.8; display: inline;
   }}
   .insight-label {{
@@ -1335,9 +1336,8 @@ def generate_monthly(api_key: str = None, output_path: str = None, sample: bool 
     print("[PDF] 渲染中 (Chrome headless)...")
     html_to_pdf(html, pdf_path)
 
-    # 同步到桌面
-    _sync_to_desktop(pdf_path, f"创新常州·对标快讯_月报_{date_fn}.pdf")
-    _sync_to_desktop(html_path, f"月报_{date_fn}.html")
+    # 分发到桌面
+    _distribute_report(pdf_path, "monthly")
 
     print(f"[完成] HTML: {html_path}")
     print(f"[完成] PDF:  {pdf_path}")
@@ -1346,17 +1346,12 @@ def generate_monthly(api_key: str = None, output_path: str = None, sample: bool 
 
 # ── 桌面同步 ────────────────────────────────────────────
 
-def _sync_to_desktop(src_path: Path, filename: str):
-    """将报告复制到桌面 创新情报 目录"""
-    try:
-        desktop_dir = Path("/Users/jzxzhou/Desktop/创新情报")
-        desktop_dir.mkdir(parents=True, exist_ok=True)
-        dst = desktop_dir / filename
-        import shutil
-        shutil.copy2(str(src_path), str(dst))
-        print(f"[桌面] {dst}")
-    except Exception as e:
-        print(f"[桌面] 复制失败: {e}")
+def _distribute_report(pdf_path: Path, report_type: str):
+    """将报告分发到桌面对应子目录（日报/周报/月报）"""
+    import sys as _sys
+    _sys.path.insert(0, str(SCRIPT_DIR))
+    from distribute import save_desktop
+    save_desktop(str(pdf_path), report_type)
 
 
 # ── 主入口 ────────────────────────────────────────────
@@ -1392,9 +1387,8 @@ def generate(api_key: str = None, output_path: str = None, sample: bool = False)
     print("[PDF] 渲染中 (Chrome headless)...")
     html_to_pdf(html, pdf_path)
 
-    # 同步到桌面
-    _sync_to_desktop(pdf_path, f"创新常州·对标快讯_周报_{date_fn}.pdf")
-    _sync_to_desktop(html_path, f"周报_{date_fn}.html")
+    # 分发到桌面
+    _distribute_report(pdf_path, "weekly")
 
     print(f"[完成] HTML: {html_path}")
     print(f"[完成] PDF:  {pdf_path}")
