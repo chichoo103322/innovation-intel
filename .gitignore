@@ -8,13 +8,16 @@ __pycache__/
 # Cache & logs
 cache/
 
-# Generated reports (HTML + PDF)
+# Generated reports (HTML + PDF + DOCX)
 daily/*.html
 daily/*.pdf
+daily/*.docx
 weekly/*.html
 weekly/*.pdf
+weekly/*.docx
 monthly/*.html
 monthly/*.pdf
+monthly/*.docx
 
 # IDE
 .vscode/

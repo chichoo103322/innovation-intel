@@ -20,35 +20,9 @@ ISSUE_FILE = PROJECT_DIR / "cache" / "issue_counter.json"
 
 def get_issue_numbers() -> tuple:
     """
-    获取当前期号。
-    如果 settings.yaml 中配置了 first_issue_date，按工作日自动计算期号；
-    否则使用计数器自动递增。
+    获取当前期号（日报/周报/月报共享同一计数器）。
+    按生成时间顺序自动递增，每次调用 issue 和 total 同步 +1。
     """
-    # 尝试读取配置文件中的起始日期
-    from run_daily import load_config
-    try:
-        cfg = load_config()
-        first_date_str = cfg.get("first_issue_date", "")
-    except Exception:
-        first_date_str = ""
-
-    if first_date_str:
-        # 按工作日计算：从起始日期到今天的周一到周五天数
-        from datetime import date, timedelta
-        start = datetime.strptime(first_date_str, "%Y-%m-%d").date()
-        today = date.today()
-        if today < start:
-            return 1, 1
-        # 统计从 start 到 today 的工作日数
-        delta = (today - start).days
-        weekdays = 0
-        for i in range(delta + 1):
-            d = start + timedelta(days=i)
-            if d.weekday() < 5:  # 周一到周五
-                weekdays += 1
-        return weekdays, weekdays
-
-    # 回退：计数器模式
     ISSUE_FILE.parent.mkdir(parents=True, exist_ok=True)
     if ISSUE_FILE.exists():
         data = json.loads(ISSUE_FILE.read_text())

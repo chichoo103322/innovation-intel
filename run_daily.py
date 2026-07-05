@@ -412,9 +412,11 @@ def main():
     # 3. 生成 HTML → PDF
     sys.path.insert(0, str(SCRIPT_DIR))
     from generate_html_pdf import build_daily_html, html_to_pdf
+    from generate_docx import get_issue_numbers
 
+    issue, total = get_issue_numbers()
     date_cn = today.strftime("%Y年%m月%d日")
-    html = build_daily_html(sections, date_cn)
+    html = build_daily_html(sections, date_cn, issue, total)
     pdf_path = html_to_pdf(html, today_pdf)
 
     # 保存 HTML

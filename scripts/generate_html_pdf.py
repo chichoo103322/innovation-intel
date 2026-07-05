@@ -487,7 +487,7 @@ def html_to_pdf(html: str, pdf_path: Path) -> Path:
 
 # ── 日报 HTML ──────────────────────────────────────────
 
-def build_daily_html(sections: list[dict], date_cn: str) -> str:
+def build_daily_html(sections: list[dict], date_cn: str, issue_no: int = 1, total_no: int = 1) -> str:
     """构建日报 HTML"""
     items_html = ""
     for s in sections:
@@ -681,13 +681,14 @@ def build_daily_html(sections: list[dict], date_cn: str) -> str:
   <div class="cover-divider"></div>
   <p class="cover-sub">Innovation Changzhou · Benchmarking Daily</p>
   <div class="cover-meta">
+    <p>2026年 第{issue_no}期 &nbsp;·&nbsp; 总第{total_no}期</p>
     <p>{date_cn}</p>
   </div>
 </div>
 
 <div class="running-header">
   <span>创新常州·对标快讯</span>
-  <span>{date_cn}</span>
+  <span>2026年第{issue_no}期</span>
 </div>
 
 <div class="content">
