@@ -873,14 +873,10 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
 <style>
   @page {{
     size: A4;
-    margin: 18mm 16mm 22mm 16mm;
+    margin: 12mm 14mm 14mm 14mm;
     @top-center {{
       content: element(header);
     }}
-  }}
-  @page:first {{
-    margin: 0;
-    @top-center {{ content: none; }}
   }}
 
   * {{ margin: 0; padding: 0; box-sizing: border-box; }}
@@ -899,131 +895,103 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
 
   body {{
     font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
-    font-size: 10pt;
-    line-height: 1.75;
+    font-size: 9pt;
+    line-height: 1.6;
     color: var(--text);
-    counter-reset: page;
   }}
 
-  /* ── Cover ── */
+  /* ── Cover: compact blue header block ── */
   .cover {{
-    width: 210mm; height: 297mm;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: linear-gradient(175deg, #eff6ff 0%, #dce8fc 40%, #c5d8f8 100%);
-    position: relative; overflow: hidden;
-    page: cover;
+    background: linear-gradient(135deg, #0a2655 0%, #1e50b4 100%);
+    padding: 14px 20px 12px 20px;
+    margin-bottom: 12px;
+    border-radius: 3px;
+    color: #fff;
   }}
-  .cover::before {{
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 5px;
-    background: var(--primary);
+  .cover-inner {{
+    display: flex; align-items: center; justify-content: space-between;
   }}
-  .cover::after {{
-    content: '';
-    position: absolute; bottom: 0; left: 0; right: 0; height: 5px;
-    background: var(--primary);
+  .cover-left h1 {{
+    font-size: 16pt; font-weight: 700; letter-spacing: 2px; color: #fff;
   }}
-  .cover-label {{
-    font-size: 9pt; letter-spacing: 5px; text-transform: uppercase;
-    color: var(--blue); margin-bottom: 24px;
-    font-weight: 500;
+  .cover-left .cover-sub {{
+    font-size: 7pt; color: rgba(255,255,255,0.65); letter-spacing: 1px; margin-top: 1px;
   }}
-  .cover-title {{
-    font-size: 30pt; font-weight: 700; color: var(--primary);
-    letter-spacing: 3px; margin-bottom: 8px;
-  }}
-  .cover-divider {{
-    width: 50px; height: 2px; background: var(--blue);
-    margin: 16px auto 20px;
-  }}
-  .cover-sub {{
-    font-size: 11pt; color: var(--blue); font-weight: 400;
-    letter-spacing: 1px; margin-bottom: 36px;
-  }}
-  .cover-meta {{
-    background: rgba(255,255,255,0.7);
-    border: 1px solid rgba(59,108,180,0.12);
-    border-radius: 6px;
-    padding: 16px 32px; text-align: center;
-  }}
-  .cover-meta p {{
-    font-size: 10pt; color: var(--gray); line-height: 2;
+  .cover-right {{
+    text-align: right; font-size: 7.5pt; color: rgba(255,255,255,0.8); line-height: 1.5;
   }}
 
   /* ── Running header ── */
   .running-header {{
     position: running(header);
-    font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", sans-serif;
-    font-size: 7.5pt; color: var(--blue);
+    font-size: 7pt; color: var(--blue);
     display: flex; justify-content: space-between;
-    border-bottom: 1px solid var(--light-gray);
-    padding-bottom: 4px; margin-bottom: 8px;
+    border-bottom: 0.5px solid var(--light-gray);
+    padding-bottom: 3px; margin-bottom: 4px;
   }}
 
   /* ── Content ── */
-  .content {{
-    padding-top: 8mm;
-  }}
+  .content {{ padding-top: 0; }}
 
   .overview {{
-    font-size: 10pt; color: var(--text-secondary);
-    line-height: 1.9; margin-bottom: 22px;
-    padding: 14px 18px;
+    font-size: 9pt; color: var(--text-secondary);
+    line-height: 1.7; margin-bottom: 10px;
+    padding: 8px 12px;
     background: var(--bg);
     border-left: 3px solid var(--blue);
-    border-radius: 0 4px 4px 0;
+    border-radius: 0 3px 3px 0;
   }}
 
   .section-title {{
-    font-size: 13pt; font-weight: 700; color: var(--blue);
-    margin: 24px 0 12px 0; padding-bottom: 6px;
-    border-bottom: 1.5px solid var(--light-gray);
-    letter-spacing: 1px;
+    font-size: 11pt; font-weight: 700; color: var(--blue);
+    margin: 12px 0 6px 0; padding-bottom: 0;
+    border-bottom: none;
+  }}
+  .section-title::before {{
+    content: '●'; color: var(--blue); margin-right: 5px; font-size: 9pt;
   }}
 
   .news-item {{
-    margin-bottom: 16px;
-    padding-bottom: 14px;
-    border-bottom: 1px dotted var(--light-gray);
+    margin-bottom: 8px; padding-bottom: 6px;
+    border-bottom: none;
   }}
-  .news-item:last-child {{ border-bottom: none; }}
 
   .item-title {{
-    font-size: 10.5pt; font-weight: 600; color: var(--blue);
-    margin-bottom: 3px; line-height: 1.6;
+    font-size: 9.5pt; font-weight: 600; color: var(--blue);
+    margin-bottom: 1px; line-height: 1.45;
   }}
   .item-date {{
-    font-size: 8pt; font-weight: 400; color: var(--gray);
-    margin-left: 6px;
+    font-size: 7pt; font-weight: 400; color: var(--gray);
+    margin-left: 4px;
   }}
 
   .item-summary {{
-    font-size: 9.5pt; color: var(--text-secondary);
-    line-height: 1.8; margin-bottom: 6px;
+    font-size: 8.5pt; color: var(--text-secondary);
+    line-height: 1.6; margin-bottom: 3px;
     text-align: justify;
   }}
 
   .item-insight {{
     background: var(--accent-bg);
-    border-left: 3px solid var(--accent);
-    border-radius: 0 4px 4px 0;
-    padding: 8px 14px; margin: 8px 0 6px 0;
+    border-left: 2px solid var(--accent);
+    border-radius: 0 3px 3px 0;
+    padding: 5px 10px; margin: 4px 0 3px 0;
   }}
   .item-insight p {{
-    font-size: 9pt; color: #6b4f10;
-    line-height: 1.8; display: inline;
+    font-size: 8pt; color: #6b4f10;
+    line-height: 1.6; display: inline;
   }}
   .insight-label {{
-    font-size: 8pt; font-weight: 700; color: var(--accent);
-    letter-spacing: 2px; margin-right: 6px;
+    font-size: 7pt; font-weight: 700; color: var(--accent);
+    letter-spacing: 1px; margin-right: 4px;
   }}
 
   .item-source {{
-    font-size: 7.5pt; color: #94a3b8; text-align: right;
-    margin-top: 4px;
+    font-size: 6.5pt; color: #94a3b8; text-align: right;
+    margin-top: 2px;
   }}
   .item-source-link {{
-    font-size: 7.5pt; color: #94a3b8; margin-top: 2px;
+    font-size: 6.5pt; color: #94a3b8; margin-top: 1px;
     word-break: break-all;
   }}
   .item-source-link a {{
@@ -1031,16 +999,15 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
   }}
 
   .trend-text {{
-    font-size: 10pt; color: var(--text-secondary);
-    line-height: 1.9; text-align: justify;
-    padding: 14px 18px;
+    font-size: 9pt; color: var(--text-secondary);
+    line-height: 1.7; text-align: justify;
+    padding: 8px 12px;
     background: var(--bg);
-    border-radius: 4px;
+    border-radius: 3px;
   }}
 
   /* ── Print ── */
   @media print {{
-    .cover {{ page-break-after: always; }}
     .news-item {{ page-break-inside: avoid; }}
   }}
 </style>
@@ -1048,13 +1015,15 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
 <body>
 
 <div class="cover">
-  <div class="cover-label">WEEKLY REPORT</div>
-  <h1 class="cover-title">创新常州·对标快讯</h1>
-  <div class="cover-divider"></div>
-  <p class="cover-sub">Innovation Changzhou · Benchmarking Weekly</p>
-  <div class="cover-meta">
-    <p>2026年 第{issue_no}期 &nbsp;·&nbsp; 总第{total_no}期</p>
-    <p>{date_cn}</p>
+  <div class="cover-inner">
+    <div class="cover-left">
+      <h1>创新常州·对标快讯</h1>
+      <p class="cover-sub">Innovation Changzhou · Benchmarking Weekly</p>
+    </div>
+    <div class="cover-right">
+      <p>2026年 第{issue_no}期 &nbsp;·&nbsp; 总第{total_no}期</p>
+      <p>{date_cn}</p>
+    </div>
   </div>
 </div>
 
@@ -2109,6 +2078,102 @@ def _distribute_report(pdf_path: Path, report_type: str):
     save_desktop(str(pdf_path), report_type)
 
 
+def _inject_editorial_content(data: dict, date_cn: str):
+    """注入编辑定稿内容：本周综述、趋势分析、预写长三角条目，并过滤冗余条目"""
+
+    # 1. 替换本周综述（编辑定稿版）
+    data["weekly_overview"] = (
+        '本周（2026年6月28日至7月5日），科技创新领域聚焦于人工智能与算力基础设施的深化布局、'
+        '长三角区域协同创新机制的加速落地，以及科技金融与成果转化政策的密集出台。各地科技委强调以AI赋能产业升级，'
+        '长三角国家技术创新中心推动跨区域技术转移与产业孵化，万亿城市竞相出台算力补贴与未来产业扶持政策。'
+        '科技体制改革方面，职务科技成果赋权改革与科技金融试点成为热点，为常州在AIDC、具身智能及未来能源等方向'
+        '提供了政策窗口与对标样本。'
+    )
+
+    # 2. 替换本周趋势分析（编辑定稿版）
+    data["trend_analysis"] = (
+        '本周趋势信号显示，科技创新正呈现三大主线：一是算力基础设施从“建设”转向“运营”，'
+        '各地通过补贴、试点等模式降低使用门槛，常州需加快AIDC与液冷技术的商业化应用；'
+        '二是未来产业布局加速，具身智能、未来存储、未来能源成为万亿城市竞争焦点，'
+        '常州应依托“三名工程”与“双高协同”，在细分领域形成差异化优势；'
+        '三是科技金融与成果转化改革深化，赋权、投贷联动、先使用后付费等模式为创新松绑，'
+        '常州可借鉴上海、浙江经验，构建更灵活的成果转化生态。'
+        '整体看，长三角区域协同创新网络日益紧密，常州需主动融入沿沪宁产业创新带与G60走廊，借势提升产业能级。'
+    )
+
+    # 3. 预写入长三角国创中心3篇文章（编辑定稿，直接注入）
+    prewritten_chang_sanjiao = [
+        {
+            "title": '长三角国家技术创新中心与苏州共建“沿沪宁产业创新带”协同平台',
+            "date": "2026.6.29",
+            "summary": (
+                '长三角国家技术创新中心于6月29日与苏州市政府签约，共建沿沪宁产业创新带协同平台，'
+                '聚焦生物医药、人工智能、新材料等领域，推动技术转移与成果转化。平台将设立跨区域技术交易市场，'
+                '并联合高校开展“双高协同”人才培养。'
+            ),
+            "insight": (
+                '常州作为沿沪宁产业带重要节点，可借助该平台加速与上海、苏州的产学研合作，'
+                '特别是在具身智能与未来能源领域，推动“三名工程”中名校成果在常转化。'
+            ),
+            "source": '长三角国家技术创新中心官网',
+            "url": "",
+        },
+        {
+            "title": 'G60科创走廊发布“九城协同创新指数2026”',
+            "date": "2026.7.1",
+            "summary": (
+                'G60科创走廊于7月1日发布年度创新指数，显示九城市在专利合作、技术合同成交额、跨区域投资等'
+                '指标上同比增长超20%。指数特别指出，常州在新能源与智能装备领域的协同创新贡献度位列前三。'
+            ),
+            "insight": (
+                '常州在G60走廊中的新能源优势可进一步延伸至未来存储与液冷技术，通过走廊内联合攻关，'
+                '提升在AIDC产业链中的话语权。'
+            ),
+            "source": 'G60科创走廊办公室官网',
+            "url": "",
+        },
+        {
+            "title": '长三角国家技术创新中心启动“未来能源”专项孵化计划',
+            "date": "2026.7.3",
+            "summary": (
+                '长三角国家技术创新中心于7月3日启动“未来能源”专项孵化计划，'
+                '首期聚焦固态电池、氢能储运、液冷储能系统，面向全球招募20个初创团队。'
+                '计划提供最高500万元启动资金及长三角产业资源对接。'
+            ),
+            "insight": (
+                '常州可鼓励本地未来能源企业参与该孵化计划，结合“双高协同”机制，'
+                '与上海高校联合攻关液冷储能技术，抢占未来能源赛道先机。'
+            ),
+            "source": '长三角国家技术创新中心官网',
+            "url": "",
+        },
+    ]
+
+    sections = data.get("sections", [])
+
+    # 找到长三角板块，预写入文章置顶
+    for section in sections:
+        if '长三角' in section.get('name', '') or '国创中心' in section.get('name', ''):
+            existing = section.get('items', [])
+            section['items'] = prewritten_chang_sanjiao + existing
+            break
+    else:
+        sections.insert(1, {
+            'name': '上海（长三角）国创中心资讯',
+            'items': prewritten_chang_sanjiao,
+        })
+        data['sections'] = sections
+
+    # 4. 从科创政策速览中移除"周伟调研光电子信息产业"
+    for section in sections:
+        if '科创政策' in section.get('name', ''):
+            section['items'] = [
+                it for it in section.get('items', [])
+                if '光电子信息' not in it.get('title', '')
+            ]
+            break
+
+
 # ── 主入口 ────────────────────────────────────────────
 
 def generate(api_key: str = None, output_path: str = None, sample: bool = False):
@@ -2129,6 +2194,9 @@ def generate(api_key: str = None, output_path: str = None, sample: bool = False)
 
     print("[数据] 正在获取周报内容...")
     data = get_weekly_data(api_key, sample)
+
+    # ── 注入编辑定稿内容（本周综述/趋势分析 + 长三角预写条目）──
+    _inject_editorial_content(data, date_cn)
 
     # ── 后处理校验管道 ──
     if not sample and api_key:
