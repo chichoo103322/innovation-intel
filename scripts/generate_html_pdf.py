@@ -98,6 +98,7 @@ WEEKLY_SYSTEM_PROMPT = """你是一位资深科技创新情报分析师，服务
 ═══════════════════════════════════════════════════════════
 
 ### 维度1：各地科技委动态（3-4条，至少1条来自 .gov.cn，至少2条来自≥85分信源）
+🔴 只取省级省委科技委或万亿城市市委科技委会议/部署/决策。中小城市（池州、芜湖等）一律不取。
 搜索各省市委科技委员会最新会议、部署、决策。
 ⚠️ 核心注意事项：
 - 科技委全称"中国共产党XX省/市委科技委员会"，是党委议事协调机构，不是政府部门的"科委"
@@ -110,11 +111,11 @@ WEEKLY_SYSTEM_PROMPT = """你是一位资深科技创新情报分析师，服务
 重点关注：跨区域协同机制、产业分工模式（如"前研后转"）、创新券通用、人才互认等对常州有直接影响的举措。
 
 ### 维度3：科创政策速览（3-4条，至少1条来自 .gov.cn，至少2条来自≥85分信源）
-搜索万亿城市最新科技创新政策、产业扶持政策。
+🔴 只取万亿城市最新科技创新政策、产业扶持政策。不含党建学习、不含文体活动新闻、不含CCTV泛泛综述。
 重点关注：AIDC/算力补贴、具身智能/智能体经济、未来能源（氢能/储能/钙钛矿）、未来存储、液冷技术相关产业政策。
 
 ### 维度4：改革举措（3-4条，至少1条来自 .gov.cn，至少2条来自≥85分信源）
-搜索科技体制改革、科技成果转化、科技金融改革最新进展。
+🔴 只取万亿城市科技体制改革/科技成果转化/科技金融创新。不含发改委一般事务（课题选聘等），不含非科技领域改革。
 重点关注："先投后股"成果转化模式、新型研发机构改革、科技金融工具创新（科技保险、投贷联动等）。
 
 ### ⚠️ 五大产业赛道强制交叉搜索（每条赛道在周报中至少被1条信息覆盖）
@@ -212,7 +213,7 @@ WEEKLY_SYSTEM_PROMPT = """你是一位资深科技创新情报分析师，服务
           "summary": "80-120字，短句直击核心。格式：主体+事件+关键数据+时间节点。信源标注：如有多源验证写'据XX官方发布'；单信源写'（单信源，待进一步确认）'",
           "insight": "80-150字（精炼简洁）。必须包含：①五大产业方向关联 ②常州产业基础嫁接点 ③至少2个周边城市竞争对比 ④政策抓手（三名工程/双高协同/本地产业园区）⑤对接经济工作会议精神/企业调研关注点 ⑥可操作建议+牵头部门",
           "source": "来源机构名称（全称）",
-          "url": "原文URL（真实链接）"
+          "url": "🔴必填！从素材中复制原文URL，不得为空、不得编造、不得省略",
         }
       ]
     }
@@ -228,31 +229,36 @@ WEEKLY_USER_PROMPT_TEMPLATE = """今天是{today_cn}。请联网搜索本周（{
 ═══════════════════════════════════════════════════════════
 ⛔ 搜索前必读：最高频错误警示
 ═══════════════════════════════════════════════════════════
-1. ⚠️ 江苏省委科技委最近一次全体会议于**2026年6月30日**召开。如果搜索结果中有关于此会议的信息，日期**必须**写6月30日，绝不能写成7月1日或其他日期！
-2. ⚠️ "科技委"≠"科委"：科技委全称"中国共产党XX省/市委科技委员会"，是党委议事协调机构。写错此名称属于政治性错误。
-3. ⚠️ 所有日期、金额、百分比等关键数据必须与 .gov.cn 原文逐位一致。
-	4. 🔴 日期致命错误：date字段只能填正文中事件实际发生日期，严禁填网页发布日期！每个素材都标注了"事件日期"和"网页发布"两个日期——只取"事件日期"。若事件日期缺失，填"近日"（不是填网页发布日期）。此条为硬性约束，出错即错误。
+0. 🔴🔴 URL强制规则（最高优先级）：每条信息必须有 url 字段！素材中每条都有真实链接，你必须原样复制到输出JSON的url字段中。url字段留空或缺失是致命错误，整条信息不合格。你没有理由不填url——素材已经提供了。
+1. 🔴 万亿城市硬约束：本报告所有内容必须来自29座GDP万亿城市（北京/上海/深圳/广州/重庆/苏州/成都/杭州/武汉/南京/天津/宁波/青岛/无锡/长沙/郑州/佛山/泉州/济南/合肥/西安/南通/东莞/烟台/常州/唐山/徐州/大连/温州）或省级/国家级层面。池州、芜湖、宜昌、襄阳等非万亿城市一律不得出现！科技委动态只能取省级（省委科技委）或万亿城市（市委科技委）。
+2. ⚠️ 江苏省委科技委最近一次全体会议于**2026年6月30日**召开。日期**必须**写6月30日。
+3. ⚠️ "科技委"≠"科委"：科技委全称"中国共产党XX省/市委科技委员会"，是党委议事协调机构。写错此名称属于政治性错误。
+4. 🔴 日期致命错误：date字段只能填正文中事件实际发生日期，严禁填网页发布日期！每个素材都标注了"事件日期"和"网页发布"两个日期——只取"事件日期"。若事件日期缺失，填"近日"。
+5. 🔴 内容相关性红线：以下类型一律不得出现——
+   - 党建学习（如"党组理论学习中心组学习"）→ 不是科技创新情报
+   - 一般政务新闻（如"发改委课题评审结果""部门工作推进会"）→ 非科技改革举措
+   - 文体娱乐活动（如"渡江节""钓鱼赛""演唱会"）→ 与科创无关
+   - CCTV/央媒泛泛综述（如"从科创中心看未来产业"）→ 缺乏具体政策/事件
+   - 汽柴油价格通知等非科技事项
+6. 🔴 科技改革举措的判定标准：必须是科技体制改革/科技成果转化/科技金融创新/新型研发机构/校地合作。一般性的发改委工作（课题选聘、价格调整、工作推进会）不算科技改革。
 
 ═══════════════════════════════════════════════════════════
 搜索要求（每维度必须使用 site: 限定词优先命中政务官方信源）
 ═══════════════════════════════════════════════════════════
 
 ### 维度1 · 各地科技委动态（至少2条来自 .gov.cn，3-4条）
+🔴 只取省级省委科技委或29座万亿城市市委科技委的会议/部署/决策。中小城市科技委（如池州、芜湖、宜昌等）一律不取。
 ⚠️ 搜索"科技委"而非"科委"。全称"省委科技委员会"或"市委科技委员会"。
 
 第一轮（政务官方强制）：
-- site:gov.cn "科技委" "会议" OR "全体会议" OR "部署"
+- site:gov.cn "省委科技委" OR "市委科技委" "全体会议" OR "会议"
 - site:most.gov.cn "科技委" OR "科技创新"
 - site:jiangsu.gov.cn "科技委" "全体会议" OR "会议"
-- site:changzhou.gov.cn "科技委"
 
-第二轮（补充搜索）：
+第二轮（万亿城市定向搜索）：
+- "上海" OR "深圳" OR "武汉" OR "苏州" OR "南京" OR "杭州" OR "合肥" "科技委" "会议"
 - "省委科技委" OR "市委科技委" "全体会议" "2026年7月"
 - "科技委" "科技创新" "部署" "2026年7月"
-
-第三轮（交叉验证）：
-- 对第一轮命中的关键会议，用不同关键词组合重新搜索以确认日期和细节
-- 搜索具体会议名称（如"江苏省委科技委员会 全体会议 2026"）进行二次确认
 
 ### 维度2 · 上海（长三角）国创中心资讯（至少1条来自 .gov.cn，3-4条）
 第一轮（政务官方强制）：
@@ -266,11 +272,12 @@ WEEKLY_USER_PROMPT_TEMPLATE = """今天是{today_cn}。请联网搜索本周（{
 - "长三角国创中心" OR "长三角国家技术创新中心" "2026"
 
 ### 维度3 · 科创政策速览（至少1条来自 .gov.cn，3-4条）
+🔴 只取万亿城市最新科技创新政策、产业扶持政策。不含党建学习、不含文体活动新闻、不含CCTV泛泛综述。
 ⚠️ 重点搜索五大产业方向相关政策
 
 第一轮（政务官方强制）：
 - site:gov.cn "科技创新政策" "2026"
-- site:beijing.gov.cn OR site:shenzhen.gov.cn OR site:nanjing.gov.cn OR site:suzhou.gov.cn OR site:wuhan.gov.cn "科技创新" "政策"
+- site:beijing.gov.cn OR site:shenzhen.gov.cn OR site:nanjing.gov.cn OR site:suzhou.gov.cn OR site:wuhan.gov.cn "科技创新" "政策" "2026"
 
 第二轮（五大产业方向政策搜索，每项至少搜一轮）：
 - site:gov.cn "AI数据中心" OR "智算中心" OR "算力补贴" OR "算力基建" "2026"
@@ -279,24 +286,23 @@ WEEKLY_USER_PROMPT_TEMPLATE = """今天是{today_cn}。请联网搜索本周（{
 - site:gov.cn "液冷" OR "浸没式冷却" "数据中心" "标准"
 - site:gov.cn "新型存储" OR "存储技术" "产业"
 
-第三轮（常州本地+周边城市）：
-- site:changzhou.gov.cn "AIDC" OR "算力" OR "人工智能" OR "新能源"
-- "苏州" OR "无锡" OR "南京" OR "南通" "算力" OR "AI" OR "具身智能" OR "氢能" "产业政策" "2026"
-
-第四轮（全链条搜索）：
-- "算力+硬件+场景+生态" "AI产业链" "创新链"
-- "AI产业园" OR "算力产业园" OR "人工智能产业园" "布局" "2026"
+第三轮（万亿城市对标搜索）：
+- "苏州" OR "无锡" OR "南京" OR "南通" OR "武汉" OR "深圳" "算力" OR "AI" OR "具身智能" OR "氢能" "产业政策" "2026"
+- "万亿城市" "科技创新" "产业扶持" "行动计划" "2026"
 
 ### 维度4 · 改革举措（至少1条来自 .gov.cn，3-4条）
+🔴 只取万亿城市科技体制改革/科技成果转化/科技金融创新。不含发改委一般事务（课题选聘、价格调整等），不含非科技领域改革。
+必须涵盖以下至少一类：科技成果转化机制、科技金融工具、新型研发机构、校地协同创新。
+
 第一轮（政务官方强制）：
-- site:gov.cn "科技体制改革" OR "科技成果转化" "2026"
-- site:most.gov.cn "改革" "2026"
+- site:gov.cn "科技体制改革" OR "科技成果转化" OR "科技金融" "2026"
+- site:most.gov.cn "科技改革" "2026"
 
 第二轮（专题搜索）：
 - "科技成果转化" "先投后股" OR "赋权改革" OR "科技金融" "2026年7月"
 - "校地合作" OR "新型研发机构" OR "高新区 高水平大学 协同"
-- "三名工程" OR "名园名院名企" OR "双高协同"
 - "科技保险" OR "投贷联动" OR "科技信贷" "2026"
+- "职务科技成果" OR "赋权改革" "2026"
 
 ### ⚠️ 常州本地对标搜索（每期必搜，作为创新洞察的本地化依据）
 以下搜索用于确保每条 insight 紧扣常州实际，不能脱离：
@@ -368,6 +374,52 @@ WEEKLY_USER_PROMPT_TEMPLATE = """今天是{today_cn}。请联网搜索本周（{
 请现在开始逐维度搜索。每条信息输出前必须通过6层验证框架的全部检查。最终只输出 JSON。"""
 
 
+def _filter_crawled_irrelevant(crawled: dict):
+    """过滤爬虫采集中的不相关内容：党建学习、发改委一般事务、文体娱乐、非万亿城市等"""
+    # URL 黑名单（已知不相关内容）
+    banned_url_patterns = [
+        "20260701_1406173",  # 发改委学习教育工作推进会
+        "25cd0b139ce24fa58883b784ca05c82a",  # 上海发改委课题评审
+        "20260705_2816833",  # 武汉歌手演唱会
+        "20260705_2816830",  # 武汉渡江节
+        "20260705_2816836",  # 武汉钓鱼赛
+        "20260704_2816792",  # 武汉园博园竹床
+        "123425511",  # 池州科技委
+    ]
+    # 标题关键词黑名单
+    banned_title_keywords = [
+        "理论学习中心组",
+        "学习教育工作推进会",
+        "汽、柴油价格",
+        "渡江节", "钓鱼", "演唱会", "歌手", "合唱", "竹床",
+        "发展改革决策咨询研究选聘课题",
+    ]
+
+    total_removed = 0
+    for dim in list(crawled.keys()):
+        items = crawled[dim]
+        new_items = []
+        for it in items:
+            title = it.title if hasattr(it, 'title') else it.get('title', '')
+            url = it.url if hasattr(it, 'url') else it.get('url', '')
+
+            # URL 黑名单检查
+            if any(p in url for p in banned_url_patterns):
+                total_removed += 1
+                continue
+
+            # 标题关键词检查
+            if any(kw in title for kw in banned_title_keywords):
+                total_removed += 1
+                continue
+
+            new_items.append(it)
+        crawled[dim] = new_items
+
+    if total_removed > 0:
+        print(f"  [过滤] 移除了 {total_removed} 条不相关内容（党建学习/发改委杂务/文体娱乐/非万亿城市）")
+
+
 def _get_supplementary_urls(report_type: str = "weekly") -> list[dict]:
     """
     返回从指定信息渠道（WebSearch验证）的补充文章URL列表。
@@ -385,12 +437,6 @@ def _get_supplementary_urls(report_type: str = "weekly") -> list[dict]:
             "url": "https://www.zgjssw.gov.cn/yaowen/202607/t20260704_8581695.shtml",
             "source": "中共江苏省委新闻网",
             "score": 100,
-            "dimension": "上海（长三角）国创中心资讯",
-        },
-        {
-            "url": "https://news.cctv.com/2026/07/01/ARTI7r5vchk6ZLHbdkJUwXI1260701.shtml",
-            "source": "央视网",
-            "score": 70,
             "dimension": "上海（长三角）国创中心资讯",
         },
         {
@@ -429,12 +475,6 @@ def _get_supplementary_urls(report_type: str = "weekly") -> list[dict]:
         {
             "url": "http://rf.jiangxi.gov.cn/jxsgfdybgs/szfyw123/list/content/content_2072814374501392384.html",
             "source": "江西省人民政府",
-            "score": 100,
-            "dimension": "各地科技委动态",
-        },
-        {
-            "url": "https://kjt.ah.gov.cn/kjzx/jckj/123425511.html",
-            "source": "安徽省科技厅",
             "score": 100,
             "dimension": "各地科技委动态",
         },
@@ -502,6 +542,9 @@ def get_weekly_data(api_key: str = None, sample: bool = False) -> dict:
         print(f"[警告] 仅采集到 {total_articles} 条真实素材，不足生成报告。使用示例数据。")
         return _sample_data()
 
+    # ── 爬虫后过滤：移除不相关内容 ──
+    _filter_crawled_irrelevant(crawled)
+
     # 缓存原始采集素材供事实核查使用
     crawled_for_cache = {}
     for dim, items in crawled.items():
@@ -534,10 +577,12 @@ def get_weekly_data(api_key: str = None, sample: bool = False) -> dict:
 4. 撰写200-250字本周综述和200-300字趋势分析
 
 ⛔ 关键约束：
+- 🔴 **URL必填**：每条素材都标注了"链接:"字段，你必须**原样复制该URL到输出JSON的url字段**。这是硬性要求，url为空则整条信息作废。每条item的url必须与素材中的链接一致。
 - **只能使用素材中提供的信息**，不得编造素材中不存在的会议、政策、数据
 - **时效性强制要求**：素材标注的事件日期必须在近2周内（{week_start_cn}至{week_end_cn}），超出范围或日期不明确的素材直接丢弃不用
 - **日期使用规则**：素材中标注了"事件日期"和"网页发布"两个日期，你必须使用**事件日期**（格式YYYY.M.D，如2026.6.30）。如果事件日期为空，则以网页发布日期为准。summary 中如需标注信源报道日期，写在摘要正文末尾，**绝对不要写在 date 字段里**。date 字段只能是纯日期格式（YYYY.M.D 或 近日）。
 - **机构名称强制**：素材中已有的机构名称必须原样使用，不得改动。"长三角国家技术创新中心"绝不能简写为"长三角国创中心"，必须使用全称。
+- **万亿城市约束**：只选取来自29座GDP万亿城市或省级/国家级层面的素材，池州等中小城市素材跳过不选。
 - 如果某板块素材不足2条，宁可少写，不要编造
 
 ═══════════════════════════════════════════════════════════
@@ -591,7 +636,7 @@ def get_weekly_data(api_key: str = None, sample: bool = False) -> dict:
           "summary": "80-120字摘要（仅基于原文事实）",
           "insight": "120-160字创新洞察（严格遵循6维度规范）",
           "source": "来源机构",
-          "url": "原文链接（素材中的真实URL）"
+          "url": "🔴必填！从素材中复制原文URL，不得为空、不得编造、不得省略"
         }}
       ]
     }}
@@ -614,7 +659,80 @@ def get_weekly_data(api_key: str = None, sample: bool = False) -> dict:
         lines = json_str.split("\n")
         lines = [l for l in lines if not l.startswith("```")]
         json_str = "\n".join(lines).strip()
-    return json.loads(json_str)
+    data = json.loads(json_str)
+    # URL 安全网：从爬虫素材回填缺失的 URL
+    _restore_urls_from_crawled(data, crawled)
+    return data
+
+
+def _restore_urls_from_crawled(data: dict, crawled: dict):
+    """从爬虫素材中匹配并回填 AI 遗漏的 URL。
+    对每条 report item，在 crawled 素材中找最佳匹配（标题关键词重叠），
+    若 item 缺少 URL 或 URL 明显不对，则从匹配到的素材中复制 URL。
+    """
+    # 构建 URL 索引: {normalized_keywords: url}
+    url_index = {}
+    for dim, items in crawled.items():
+        for it in items:
+            if hasattr(it, 'url'):
+                url = it.url
+                title = it.title
+            elif isinstance(it, dict):
+                url = it.get('url', '')
+                title = it.get('title', '')
+            else:
+                continue
+            if url and title:
+                # 取标题前30字符做关键词索引
+                key = _title_key(title)
+                if key not in url_index:
+                    url_index[key] = url
+
+    sections = data.get("sections", [])
+    restored = 0
+    for section in sections:
+        for item in section.get("items", []):
+            url = item.get("url", "")
+            if url and url.startswith("http"):
+                continue  # URL 已存在且看似合法
+
+            title = item.get("title", "")
+            item_key = _title_key(title)
+            # 精确匹配
+            if item_key in url_index:
+                item["url"] = url_index[item_key]
+                restored += 1
+                continue
+            # 模糊匹配：找共同关键词最多的
+            best_match = _fuzzy_match_title(title, url_index)
+            if best_match:
+                item["url"] = url_index[best_match]
+                restored += 1
+
+    if restored > 0:
+        print(f"  [URL回填] 从爬虫素材恢复了 {restored} 条缺失的URL")
+
+
+def _title_key(title: str) -> str:
+    """归一化标题关键词用于匹配"""
+    import re
+    # 去除标点、空白，取前30字符
+    clean = re.sub(r'[【】《》""\'\'、，。！？\s]', '', title)
+    return clean[:30]
+
+
+def _fuzzy_match_title(title: str, url_index: dict) -> str | None:
+    """模糊标题匹配，找到共同关键词最多的索引key"""
+    best_key = None
+    best_score = 0
+    title_chars = set(title)
+    for key in url_index:
+        score = len(title_chars & set(key))
+        if score > best_score:
+            best_score = score
+            best_key = key
+    # 至少需要5个共同字符才算匹配
+    return best_key if best_score >= 5 else None
 
 
 def get_daily_data(api_key: str = None, sample: bool = False) -> dict:
@@ -660,6 +778,9 @@ def get_daily_data(api_key: str = None, sample: bool = False) -> dict:
     if total_articles < 3:
         print(f"[警告] 仅采集到 {total_articles} 条真实素材，不足生成日报。使用示例数据。")
         return _sample_data()
+
+    # ── 爬虫后过滤：移除不相关内容 ──
+    _filter_crawled_irrelevant(crawled)
 
     # 缓存原始采集素材供事实核查使用
     crawled_for_cache = {}
@@ -743,7 +864,7 @@ def get_daily_data(api_key: str = None, sample: bool = False) -> dict:
           "summary": "80-120字摘要（仅基于原文事实）",
           "insight": "120-160字创新洞察（严格遵循6维度规范）",
           "source": "来源机构",
-          "url": "原文链接（素材中的真实URL）"
+          "url": "🔴必填！从素材中复制原文URL，不得为空、不得编造、不得省略"
         }}
       ]
     }}
@@ -1673,7 +1794,7 @@ def get_monthly_data(api_key: str = None, sample: bool = False) -> dict:
           "summary": "100-150字摘要",
           "insight": "120-160字创新洞察（严格遵循6维度规范）",
           "source": "来源机构",
-          "url": "原文链接（素材中的真实URL）"
+          "url": "🔴必填！从素材中复制原文URL，不得为空、不得编造、不得省略"
         }}
       ]
     }}
