@@ -208,7 +208,7 @@ WEEKLY_SYSTEM_PROMPT = """你是一位资深科技创新情报分析师，服务
       "items": [
         {
           "title": "信息标题（机构全称准确，如'江苏省委科技委员会第X次全体会议'）",
-          "date": "2026.7.X（与原文严格一致，不确定则写'近日'）",
+          "date": "YYYY.M.D（🔴只能填正文事件实际发生日期，严禁填网页发布日期。素材中区分'事件日期'与'网页发布'，只取事件日期。事件日期缺失填'近日'）",
           "summary": "80-120字，短句直击核心。格式：主体+事件+关键数据+时间节点。信源标注：如有多源验证写'据XX官方发布'；单信源写'（单信源，待进一步确认）'",
           "insight": "80-150字（精炼简洁）。必须包含：①五大产业方向关联 ②常州产业基础嫁接点 ③至少2个周边城市竞争对比 ④政策抓手（三名工程/双高协同/本地产业园区）⑤对接经济工作会议精神/企业调研关注点 ⑥可操作建议+牵头部门",
           "source": "来源机构名称（全称）",
@@ -231,6 +231,7 @@ WEEKLY_USER_PROMPT_TEMPLATE = """今天是{today_cn}。请联网搜索本周（{
 1. ⚠️ 江苏省委科技委最近一次全体会议于**2026年6月30日**召开。如果搜索结果中有关于此会议的信息，日期**必须**写6月30日，绝不能写成7月1日或其他日期！
 2. ⚠️ "科技委"≠"科委"：科技委全称"中国共产党XX省/市委科技委员会"，是党委议事协调机构。写错此名称属于政治性错误。
 3. ⚠️ 所有日期、金额、百分比等关键数据必须与 .gov.cn 原文逐位一致。
+	4. 🔴 日期致命错误：date字段只能填正文中事件实际发生日期，严禁填网页发布日期！每个素材都标注了"事件日期"和"网页发布"两个日期——只取"事件日期"。若事件日期缺失，填"近日"（不是填网页发布日期）。此条为硬性约束，出错即错误。
 
 ═══════════════════════════════════════════════════════════
 搜索要求（每维度必须使用 site: 限定词优先命中政务官方信源）
@@ -489,7 +490,8 @@ def get_weekly_data(api_key: str = None, sample: bool = False) -> dict:
         for i, it in enumerate(items):
             context_parts.append(
                 f"[{i+1}] 标题: {it.title}\n"
-                f"    事件日期: {it.event_date or it.date_str}（网页发布: {it.date_str}）\n"
+                f"    🔴事件日期（必须用于报告date字段）: {it.event_date or '未知'}\n"
+                f"    网页发布日期（仅供参考，严禁用作报告date字段）: {it.date_str}\n"
                 f"    来源: {it.source} ({it.domain}, 评分{it.score})\n"
                 f"    链接: {it.url}\n"
                 f"    摘要: {it.summary[:150]}"
@@ -585,7 +587,7 @@ def get_weekly_data(api_key: str = None, sample: bool = False) -> dict:
       "items": [
         {{
           "title": "标题",
-          "date": "YYYY.M.D（必填，优先使用事件日期；若无事件日期则用网页发布日期，并注明'据XX网站X月X日报道'；素材无日期则填'近日'）",
+          "date": "YYYY.M.D（🔴只能填正文事件实际发生日期，严禁填网页发布日期。素材中区分'事件日期'与'网页发布'，只取事件日期。事件日期缺失填'近日'）",
           "summary": "80-120字摘要（仅基于原文事实）",
           "insight": "120-160字创新洞察（严格遵循6维度规范）",
           "source": "来源机构",
@@ -647,7 +649,8 @@ def get_daily_data(api_key: str = None, sample: bool = False) -> dict:
         for i, it in enumerate(items):
             context_parts.append(
                 f"[{i+1}] 标题: {it.title}\n"
-                f"    事件日期: {it.event_date or it.date_str}（网页发布: {it.date_str}）\n"
+                f"    🔴事件日期（必须用于报告date字段）: {it.event_date or '未知'}\n"
+                f"    网页发布日期（仅供参考，严禁用作报告date字段）: {it.date_str}\n"
                 f"    来源: {it.source} ({it.domain}, 评分{it.score})\n"
                 f"    链接: {it.url}\n"
                 f"    摘要: {it.summary[:150]}"
@@ -736,7 +739,7 @@ def get_daily_data(api_key: str = None, sample: bool = False) -> dict:
       "items": [
         {{
           "title": "标题",
-          "date": "YYYY.M.D（必填，优先使用事件日期；若无事件日期则用网页发布日期，并注明'据XX网站X月X日报道'；素材无日期则填'近日'）",
+          "date": "YYYY.M.D（🔴只能填正文事件实际发生日期，严禁填网页发布日期。素材中区分'事件日期'与'网页发布'，只取事件日期。事件日期缺失填'近日'）",
           "summary": "80-120字摘要（仅基于原文事实）",
           "insight": "120-160字创新洞察（严格遵循6维度规范）",
           "source": "来源机构",
@@ -873,9 +876,15 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
 <style>
   @page {{
     size: A4;
-    margin: 12mm 14mm 14mm 14mm;
+    margin: 10mm 12mm 16mm 12mm;
     @top-center {{
       content: element(header);
+    }}
+    @bottom-center {{
+      content: "— " counter(page) " —";
+      font-size: 7pt;
+      color: #94a3b8;
+      font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
     }}
   }}
 
@@ -935,16 +944,16 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
 
   .overview {{
     font-size: 9pt; color: var(--text-secondary);
-    line-height: 1.7; margin-bottom: 10px;
-    padding: 8px 12px;
+    line-height: 1.55; margin-bottom: 6px;
+    padding: 6px 10px;
     background: var(--bg);
     border-left: 3px solid var(--blue);
     border-radius: 0 3px 3px 0;
   }}
 
   .section-title {{
-    font-size: 11pt; font-weight: 700; color: var(--blue);
-    margin: 12px 0 6px 0; padding-bottom: 0;
+    font-size: 10.5pt; font-weight: 700; color: var(--blue);
+    margin: 10px 0 4px 0; padding-bottom: 0;
     border-bottom: none;
   }}
   .section-title::before {{
@@ -952,13 +961,16 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
   }}
 
   .news-item {{
-    margin-bottom: 8px; padding-bottom: 6px;
+    margin-bottom: 5px; padding-bottom: 3px;
     border-bottom: none;
   }}
 
   .item-title {{
     font-size: 9.5pt; font-weight: 600; color: var(--blue);
     margin-bottom: 1px; line-height: 1.45;
+  }}
+  .item-title::before {{
+    content: '▸'; color: var(--accent); margin-right: 4px; font-size: 8pt;
   }}
   .item-date {{
     font-size: 7pt; font-weight: 400; color: var(--gray);
@@ -1108,14 +1120,21 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
 <style>
   @page {{
     size: A4;
-    margin: 18mm 16mm 22mm 16mm;
+    margin: 10mm 12mm 16mm 12mm;
     @top-center {{
       content: element(header);
+    }}
+    @bottom-center {{
+      content: "— " counter(page) " —";
+      font-size: 7pt;
+      color: #94a3b8;
+      font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
     }}
   }}
   @page:first {{
     margin: 0;
     @top-center {{ content: none; }}
+    @bottom-center {{ content: none; }}
   }}
 
   * {{ margin: 0; padding: 0; box-sizing: border-box; }}
@@ -1226,6 +1245,9 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
   .item-title {{
     font-size: 10.5pt; font-weight: 600; color: var(--blue);
     margin-bottom: 3px; line-height: 1.6;
+  }}
+  .item-title::before {{
+    content: '▸'; color: var(--accent); margin-right: 4px; font-size: 9pt;
   }}
   .item-date {{
     font-size: 8pt; font-weight: 400; color: var(--gray);
@@ -1407,7 +1429,7 @@ MONTHLY_SYSTEM_PROMPT = """你是一位资深科技创新情报分析师，服�
       "items": [
         {
           "title": "信息标题（机构全称准确）",
-          "date": "2026.7.X（与原文严格一致）",
+          "date": "2026.7.X（🔴只能填正文事件实际发生日期，严禁填网页发布日期）",
           "summary": "100-150字，包含具体政策名称/金额/时间/主体。信源标注：多源验证写'据XX官方发布'",
           "insight": "80-150字（精炼简洁）。必须包含：①五大产业方向关联 ②常州产业基础嫁接点 ③至少2个周边城市竞争对比 ④政策抓手 ⑤经济工作会议精神/企业调研关注点 ⑥可操作建议+牵头部门",
           "source": "来源机构名称（全称）",
@@ -1560,7 +1582,8 @@ def get_monthly_data(api_key: str = None, sample: bool = False) -> dict:
         for i, it in enumerate(items):
             context_parts.append(
                 f"[{i+1}] 标题: {it.title}\n"
-                f"    事件日期: {it.event_date or it.date_str}（网页发布: {it.date_str}）\n"
+                f"    🔴事件日期（必须用于报告date字段）: {it.event_date or '未知'}\n"
+                f"    网页发布日期（仅供参考，严禁用作报告date字段）: {it.date_str}\n"
                 f"    来源: {it.source} ({it.domain}, 评分{it.score})\n"
                 f"    链接: {it.url}\n"
                 f"    摘要: {it.summary[:150]}"
@@ -1813,14 +1836,21 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
 <style>
   @page {{
     size: A4;
-    margin: 18mm 16mm 22mm 16mm;
+    margin: 10mm 12mm 16mm 12mm;
     @top-center {{
       content: element(header);
+    }}
+    @bottom-center {{
+      content: "— " counter(page) " —";
+      font-size: 7pt;
+      color: #94a3b8;
+      font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
     }}
   }}
   @page:first {{
     margin: 0;
     @top-center {{ content: none; }}
+    @bottom-center {{ content: none; }}
   }}
 
   * {{ margin: 0; padding: 0; box-sizing: border-box; }}
@@ -1924,6 +1954,9 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
   .item-title {{
     font-size: 10.5pt; font-weight: 600; color: var(--blue);
     margin-bottom: 3px; line-height: 1.6;
+  }}
+  .item-title::before {{
+    content: '▸'; color: var(--accent); margin-right: 4px; font-size: 9pt;
   }}
   .item-date {{
     font-size: 8pt; font-weight: 400; color: var(--gray);
@@ -2079,9 +2112,9 @@ def _distribute_report(pdf_path: Path, report_type: str):
 
 
 def _inject_editorial_content(data: dict, date_cn: str):
-    """注入编辑定稿内容：本周综述、趋势分析、预写长三角条目，并过滤冗余条目"""
+    """注入编辑定稿内容并过滤冗余条目。只注入编辑分析(综述/趋势),不注入任何事实性条目。"""
 
-    # 1. 替换本周综述（编辑定稿版）
+    # 1. 替换本周综述（编辑定稿分析版，不包含未经验证的事实主张）
     data["weekly_overview"] = (
         '本周（2026年6月28日至7月5日），科技创新领域聚焦于人工智能与算力基础设施的深化布局、'
         '长三角区域协同创新机制的加速落地，以及科技金融与成果转化政策的密集出台。各地科技委强调以AI赋能产业升级，'
@@ -2090,81 +2123,19 @@ def _inject_editorial_content(data: dict, date_cn: str):
         '提供了政策窗口与对标样本。'
     )
 
-    # 2. 替换本周趋势分析（编辑定稿版）
+    # 2. 替换本周趋势分析（编辑定稿分析版）
     data["trend_analysis"] = (
-        '本周趋势信号显示，科技创新正呈现三大主线：一是算力基础设施从“建设”转向“运营”，'
+        '本周趋势信号显示，科技创新正呈现三大主线：一是算力基础设施从"建设"转向"运营"，'
         '各地通过补贴、试点等模式降低使用门槛，常州需加快AIDC与液冷技术的商业化应用；'
         '二是未来产业布局加速，具身智能、未来存储、未来能源成为万亿城市竞争焦点，'
-        '常州应依托“三名工程”与“双高协同”，在细分领域形成差异化优势；'
+        '常州应依托"三名工程"与"双高协同"，在细分领域形成差异化优势；'
         '三是科技金融与成果转化改革深化，赋权、投贷联动、先使用后付费等模式为创新松绑，'
         '常州可借鉴上海、浙江经验，构建更灵活的成果转化生态。'
         '整体看，长三角区域协同创新网络日益紧密，常州需主动融入沿沪宁产业创新带与G60走廊，借势提升产业能级。'
     )
 
-    # 3. 预写入长三角国创中心3篇文章（编辑定稿，直接注入）
-    prewritten_chang_sanjiao = [
-        {
-            "title": '长三角国家技术创新中心与苏州共建“沿沪宁产业创新带”协同平台',
-            "date": "2026.6.29",
-            "summary": (
-                '长三角国家技术创新中心于6月29日与苏州市政府签约，共建沿沪宁产业创新带协同平台，'
-                '聚焦生物医药、人工智能、新材料等领域，推动技术转移与成果转化。平台将设立跨区域技术交易市场，'
-                '并联合高校开展“双高协同”人才培养。'
-            ),
-            "insight": (
-                '常州作为沿沪宁产业带重要节点，可借助该平台加速与上海、苏州的产学研合作，'
-                '特别是在具身智能与未来能源领域，推动“三名工程”中名校成果在常转化。'
-            ),
-            "source": '长三角国家技术创新中心官网',
-            "url": "",
-        },
-        {
-            "title": 'G60科创走廊发布“九城协同创新指数2026”',
-            "date": "2026.7.1",
-            "summary": (
-                'G60科创走廊于7月1日发布年度创新指数，显示九城市在专利合作、技术合同成交额、跨区域投资等'
-                '指标上同比增长超20%。指数特别指出，常州在新能源与智能装备领域的协同创新贡献度位列前三。'
-            ),
-            "insight": (
-                '常州在G60走廊中的新能源优势可进一步延伸至未来存储与液冷技术，通过走廊内联合攻关，'
-                '提升在AIDC产业链中的话语权。'
-            ),
-            "source": 'G60科创走廊办公室官网',
-            "url": "",
-        },
-        {
-            "title": '长三角国家技术创新中心启动“未来能源”专项孵化计划',
-            "date": "2026.7.3",
-            "summary": (
-                '长三角国家技术创新中心于7月3日启动“未来能源”专项孵化计划，'
-                '首期聚焦固态电池、氢能储运、液冷储能系统，面向全球招募20个初创团队。'
-                '计划提供最高500万元启动资金及长三角产业资源对接。'
-            ),
-            "insight": (
-                '常州可鼓励本地未来能源企业参与该孵化计划，结合“双高协同”机制，'
-                '与上海高校联合攻关液冷储能技术，抢占未来能源赛道先机。'
-            ),
-            "source": '长三角国家技术创新中心官网',
-            "url": "",
-        },
-    ]
-
+    # 3. 从科创政策速览中移除"周伟调研光电子信息产业"（与其他条目信息重叠，且验证后保留其他条）
     sections = data.get("sections", [])
-
-    # 找到长三角板块，预写入文章置顶
-    for section in sections:
-        if '长三角' in section.get('name', '') or '国创中心' in section.get('name', ''):
-            existing = section.get('items', [])
-            section['items'] = prewritten_chang_sanjiao + existing
-            break
-    else:
-        sections.insert(1, {
-            'name': '上海（长三角）国创中心资讯',
-            'items': prewritten_chang_sanjiao,
-        })
-        data['sections'] = sections
-
-    # 4. 从科创政策速览中移除"周伟调研光电子信息产业"
     for section in sections:
         if '科创政策' in section.get('name', ''):
             section['items'] = [

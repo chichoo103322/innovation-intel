@@ -148,7 +148,7 @@ def validate_report(data: dict, report_type: str = "weekly") -> tuple[list, list
                 elif score < 60:
                     warnings.append(f"{prefix} 信源评分较低（{domain}={score}分），建议替换为更高权威信源")
             else:
-                warnings.append(f"{prefix} 缺少来源 URL")
+                errors.append(f"{prefix} 缺少来源 URL —— 所有信息必须可追溯到原始信源，无URL条目视为未经验证")
 
             if source:
                 all_sources.append(source)
@@ -159,6 +159,9 @@ def validate_report(data: dict, report_type: str = "weekly") -> tuple[list, list
                 errors.append(f"{prefix} {date_msg}")
             elif date_str and date_str != "近日":
                 all_dates.append(date_str)
+
+            # ── 3b. 事件日期交叉比对：报告日期必须等于爬虫采集的事件日期，而非网页发布日期 ──
+            _check_date_against_event_date(prefix, url, date_str, errors, warnings)
 
             # ── 4. 数据精度校验 ──
             _check_number_precision(prefix, summary, insight, title, errors, warnings)
@@ -245,6 +248,81 @@ def _score_domain(domain: str) -> int:
         if pattern in domain:
             return score
     return 0
+
+
+# ── 爬虫素材事件日期索引（模块级缓存） ──
+_event_date_index = None
+
+
+def _load_event_date_index() -> dict:
+    """加载 crawled_sources.json，建立 URL → event_date 索引"""
+    global _event_date_index
+    if _event_date_index is not None:
+        return _event_date_index
+    _event_date_index = {}
+    cache_file = CACHE_DIR / "crawled_sources.json"
+    if not cache_file.exists():
+        return _event_date_index
+    try:
+        import json
+        with open(cache_file, "r", encoding="utf-8") as f:
+            crawled = json.load(f)
+        for dim, items in crawled.items():
+            if not isinstance(items, list):
+                continue
+            for it in items:
+                url = it.get("url", "")
+                event_date = it.get("event_date", "")
+                if url and event_date:
+                    _event_date_index[url] = event_date
+    except Exception:
+        pass
+    return _event_date_index
+
+
+def _normalize_date_for_compare(date_str: str) -> str:
+    """将各种日期格式归一化为 YYYYMMDD 便于比对"""
+    if not date_str:
+        return ""
+    date_str = date_str.strip()
+    m = re.match(r"(\d{4})\.(\d{1,2})\.(\d{1,2})$", date_str)
+    if m:
+        return f"{int(m.group(1)):04d}{int(m.group(2)):02d}{int(m.group(3)):02d}"
+    m = re.match(r"(\d{4})年(\d{1,2})月(\d{1,2})日", date_str)
+    if m:
+        return f"{int(m.group(1)):04d}{int(m.group(2)):02d}{int(m.group(3)):02d}"
+    m = re.match(r"(\d{4})-(\d{1,2})-(\d{1,2})", date_str)
+    if m:
+        return f"{int(m.group(1)):04d}{int(m.group(2)):02d}{int(m.group(3)):02d}"
+    return date_str
+
+
+def _check_date_against_event_date(prefix: str, url: str, report_date: str,
+                                    errors: list, warnings: list):
+    """交叉比对报告日期与爬虫采集的事件日期。
+
+    若报告日期等于网页发布日期（而非事件日期），说明 AI 用错了日期来源，报错。
+    """
+    if not url or not report_date or report_date.strip() == "近日":
+        return
+
+    index = _load_event_date_index()
+    event_date = index.get(url, "")
+    if not event_date:
+        return
+
+    report_norm = _normalize_date_for_compare(report_date)
+    event_norm = _normalize_date_for_compare(event_date)
+
+    if not report_norm:
+        return
+
+    if report_norm != event_norm:
+        errors.append(
+            f"{prefix} 日期错误：报告日期为「{report_date}」，"
+            f"但爬虫从正文提取的事件日期为「{event_date}」。"
+            f"请确认是否误用了网页发布日期而非事件实际发生日期。"
+        )
 
 
 def _validate_date(date_str: str, today: datetime, report_type: str) -> tuple[bool, str]:
