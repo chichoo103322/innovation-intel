@@ -1128,8 +1128,7 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
     line-height: 1.55; margin-bottom: 6px;
     padding: 6px 10px;
     background: var(--bg);
-    border-left: 3px solid var(--blue);
-    border-radius: 0 3px 3px 0;
+    border-radius: 3px;
   }}
 
   .section-title {{
@@ -1166,8 +1165,7 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
 
   .item-insight {{
     background: var(--accent-bg);
-    border-left: 2px solid var(--accent);
-    border-radius: 0 3px 3px 0;
+    border-radius: 3px;
     padding: 5px 10px; margin: 4px 0 3px 0;
   }}
   .item-insight p {{
@@ -1261,7 +1259,7 @@ def html_to_pdf(html: str, pdf_path: Path) -> Path:
 # ── 日报 HTML ──────────────────────────────────────────
 
 def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -> str:
-    """构建日报 HTML。data 可以是 dict（含 sections）或 list[dict]"""
+    """构建日报 HTML（风格与周报一致：紧凑标题栏、无左侧竖线、无独立封面页）"""
     if isinstance(data, list):
         sections, overview = data, ""
     else:
@@ -1270,7 +1268,7 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
 
     items_html = ""
     if overview:
-        items_html += f'<p class="overview">{overview}</p>\n'
+        items_html += f'<div class="overview">{overview}</div>\n'
 
     for s in sections:
         sname = s.get("name", "")
@@ -1280,9 +1278,8 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
             date_i = item.get("date", "")
             summary = item.get("summary", "")
             insight = item.get("insight") or item.get("innovation_insight") or ""
-            source = item.get("source", "")
             url = item.get("url", "")
-            source_html = f'<p class="item-source">信息来源：<a href="{url}">{url}</a></p>' if url else f'<p class="item-source">{source}</p>'
+            source_link_html = f'<p class="item-source-link">信息来源：<a href="{url}">{url}</a></p>' if url else ""
             items_html += f"""
         <div class="news-item">
           <h3 class="item-title">{title}<span class="item-date">{date_i}</span></h3>
@@ -1291,7 +1288,7 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
             <span class="insight-label">创新洞察</span>
             <p>{insight}</p>
           </div>
-          {source_html}
+          {source_link_html}
         </div>"""
 
     return f"""<!DOCTYPE html>
@@ -1312,11 +1309,6 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
       font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
     }}
   }}
-  @page:first {{
-    margin: 0;
-    @top-center {{ content: none; }}
-    @bottom-center {{ content: none; }}
-  }}
 
   * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 
@@ -1334,145 +1326,105 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
 
   body {{
     font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
-    font-size: 10pt; line-height: 1.75; color: var(--text);
+    font-size: 9pt; line-height: 1.6; color: var(--text);
   }}
 
-  /* ── Title block ── */
-  .title-block {{
-    text-align: center; padding: 20mm 0 8mm 0;
-    border-bottom: 2px solid var(--primary);
-    margin-bottom: 16px;
+  /* ── Cover ── */
+  .cover {{
+    background: linear-gradient(135deg, #0a2655 0%, #1e50b4 100%);
+    padding: 14px 20px 12px 20px;
+    margin-bottom: 12px;
+    border-radius: 3px;
+    color: #fff;
   }}
-  .title-block h1 {{
-    font-size: 20pt; font-weight: 700; color: var(--primary);
-    letter-spacing: 2px; margin-bottom: 4px;
+  .cover-inner {{
+    display: flex; align-items: center; justify-content: space-between;
   }}
-  .title-block .sub {{
-    font-size: 9pt; color: var(--gray);
-    letter-spacing: 3px; text-transform: uppercase;
+  .cover-left h1 {{
+    font-size: 16pt; font-weight: 700; letter-spacing: 2px; color: #fff;
   }}
-  .title-block .date {{
-    font-size: 9pt; color: var(--blue);
-    margin-top: 6px;
+  .cover-left .cover-sub {{
+    font-size: 7pt; color: rgba(255,255,255,0.65); letter-spacing: 1px; margin-top: 1px;
+  }}
+  .cover-right {{
+    text-align: right; font-size: 7.5pt; color: rgba(255,255,255,0.8); line-height: 1.5;
   }}
 
   /* ── Running header ── */
   .running-header {{
     position: running(header);
-    font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", sans-serif;
-    font-size: 7.5pt; color: var(--blue);
+    font-size: 7pt; color: var(--blue);
     display: flex; justify-content: space-between;
-    border-bottom: 1px solid var(--light-gray);
-    padding-bottom: 4px; margin-bottom: 8px;
+    border-bottom: 0.5px solid var(--light-gray);
+    padding-bottom: 3px; margin-bottom: 4px;
+  }}
+
+  /* ── Content ── */
+  .content {{ padding-top: 0; }}
+
+  .overview {{
+    font-size: 9pt; color: var(--text-secondary);
+    line-height: 1.55; margin-bottom: 6px;
+    padding: 6px 10px;
+    background: var(--bg);
+    border-radius: 3px;
   }}
 
   .section-title {{
-    font-size: 12pt; font-weight: 700; color: var(--blue);
-    margin: 20px 0 10px 0; padding-bottom: 5px;
-    border-bottom: 1.5px solid var(--light-gray);
-    letter-spacing: 1px;
+    font-size: 10.5pt; font-weight: 700; color: var(--blue);
+    margin: 10px 0 4px 0; padding-bottom: 0;
+    border-bottom: none;
   }}
-
-  /* ── Cover ── */
-  .cover {{
-    width: 210mm; height: 297mm;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: linear-gradient(175deg, #eff6ff 0%, #dce8fc 40%, #c5d8f8 100%);
-    position: relative; overflow: hidden;
-    page: cover;
-  }}
-  .cover::before {{
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 5px;
-    background: var(--primary);
-  }}
-  .cover::after {{
-    content: '';
-    position: absolute; bottom: 0; left: 0; right: 0; height: 5px;
-    background: var(--primary);
-  }}
-  .cover-label {{
-    font-size: 9pt; letter-spacing: 5px; text-transform: uppercase;
-    color: var(--blue); margin-bottom: 24px; font-weight: 500;
-  }}
-  .cover-title {{
-    font-size: 30pt; font-weight: 700; color: var(--primary);
-    letter-spacing: 3px; margin-bottom: 8px;
-  }}
-  .cover-divider {{
-    width: 50px; height: 2px; background: var(--blue);
-    margin: 16px auto 20px;
-  }}
-  .cover-sub {{
-    font-size: 11pt; color: var(--blue); font-weight: 400;
-    letter-spacing: 1px; margin-bottom: 36px;
-  }}
-  .cover-meta {{
-    background: rgba(255,255,255,0.7);
-    border: 1px solid rgba(59,108,180,0.12);
-    border-radius: 6px;
-    padding: 16px 32px; text-align: center;
-  }}
-  .cover-meta p {{
-    font-size: 10pt; color: var(--gray); line-height: 2;
+  .section-title::before {{
+    content: '●'; color: var(--blue); margin-right: 5px; font-size: 9pt;
   }}
 
   .news-item {{
-    margin-bottom: 14px; padding-bottom: 12px;
-    border-bottom: 1px dotted var(--light-gray);
+    margin-bottom: 5px; padding-bottom: 3px;
+    border-bottom: none;
   }}
-  .news-item:last-child {{ border-bottom: none; }}
 
   .item-title {{
-    font-size: 10.5pt; font-weight: 600; color: var(--blue);
-    margin-bottom: 3px; line-height: 1.6;
+    font-size: 9.5pt; font-weight: 600; color: var(--blue);
+    margin-bottom: 1px; line-height: 1.45;
   }}
   .item-title::before {{
-    content: '▸'; color: var(--accent); margin-right: 4px; font-size: 9pt;
+    content: '▸'; color: var(--accent); margin-right: 4px; font-size: 8pt;
   }}
   .item-date {{
-    font-size: 8pt; font-weight: 400; color: var(--gray);
-    margin-left: 6px;
+    font-size: 7pt; font-weight: 400; color: var(--gray);
+    margin-left: 4px;
   }}
 
   .item-summary {{
-    font-size: 9.5pt; color: var(--text-secondary);
-    line-height: 1.8; margin-bottom: 6px;
+    font-size: 8.5pt; color: var(--text-secondary);
+    line-height: 1.6; margin-bottom: 3px;
     text-align: justify;
   }}
 
   .item-insight {{
     background: var(--accent-bg);
-    border-left: 3px solid var(--accent);
-    border-radius: 0 4px 4px 0;
-    padding: 8px 14px; margin: 8px 0 6px 0;
+    border-radius: 3px;
+    padding: 5px 10px; margin: 4px 0 3px 0;
   }}
   .item-insight p {{
-    font-size: 9pt; color: #6b4f10;
-    line-height: 1.8; display: inline;
+    font-size: 8pt; color: #6b4f10;
+    line-height: 1.6; display: inline;
   }}
   .insight-label {{
-    font-size: 8pt; font-weight: 700; color: var(--accent);
-    letter-spacing: 2px; margin-right: 6px;
+    font-size: 7pt; font-weight: 700; color: var(--accent);
+    letter-spacing: 1px; margin-right: 4px;
   }}
 
-  .item-source {{
-    font-size: 7.5pt; color: #94a3b8; text-align: right;
-    margin-top: 4px; word-break: break-all;
+  .item-source-link {{
+    font-size: 6.5pt; color: #94a3b8; margin-top: 1px;
+    word-break: break-all;
   }}
-  .item-source a {{
+  .item-source-link a {{
     color: #64748b; text-decoration: none;
   }}
 
-  .overview {{
-    font-size: 9.5pt; color: #475569;
-    line-height: 1.8; margin-bottom: 16px;
-    text-align: justify; padding: 8px 12px;
-    background: #f1f5f9; border-radius: 4px;
-  }}
-
   @media print {{
-    .cover {{ page-break-after: always; }}
     .news-item {{ page-break-inside: avoid; }}
   }}
 </style>
@@ -1480,13 +1432,15 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
 <body>
 
 <div class="cover">
-  <div class="cover-label">DAILY REPORT</div>
-  <h1 class="cover-title">创新常州·对标快讯</h1>
-  <div class="cover-divider"></div>
-  <p class="cover-sub">Innovation Changzhou · Benchmarking Daily</p>
-  <div class="cover-meta">
-    <p>2026年 第{issue_no}期 &nbsp;·&nbsp; 总第{total_no}期</p>
-    <p>{date_cn}</p>
+  <div class="cover-inner">
+    <div class="cover-left">
+      <h1>创新常州·对标快讯</h1>
+      <p class="cover-sub">Innovation Changzhou · Benchmarking Daily</p>
+    </div>
+    <div class="cover-right">
+      <p>2026年 第{issue_no}期 &nbsp;·&nbsp; 总第{total_no}期</p>
+      <p>{date_cn}</p>
+    </div>
   </div>
 </div>
 
@@ -1994,7 +1948,7 @@ def _monthly_sample_data() -> dict:
 
 
 def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
-    """构建月度 HTML 报告"""
+    """构建月度 HTML 报告（风格与周报一致：紧凑标题栏、无左侧竖线、无独立封面页）"""
     overview = data.get("monthly_overview") or data.get("overview") or ""
     sections = data.get("sections", [])
     trend = data.get("trend_analysis") or data.get("trend") or ""
@@ -2009,11 +1963,8 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
             date_i = item.get("date", "")
             summary = item.get("summary", "")
             insight = item.get("innovation_insight") or item.get("insight") or ""
-            source = item.get("source", "")
             url = item.get("url", "")
-            source_link_html = ""
-            if url:
-                source_link_html = f'<p class="item-source-link">信息来源：<a href="{url}">{url}</a></p>'
+            source_link_html = f'<p class="item-source-link">信息来源：<a href="{url}">{url}</a></p>' if url else ""
             items_html += f"""
         <div class="news-item">
           <h3 class="item-title">{title}<span class="item-date">{date_i}</span></h3>
@@ -2022,7 +1973,6 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
             <span class="insight-label">创新洞察</span>
             <p>{insight}</p>
           </div>
-          <p class="item-source">{source}</p>
           {source_link_html}
         </div>"""
 
@@ -2057,11 +2007,6 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
       font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
     }}
   }}
-  @page:first {{
-    margin: 0;
-    @top-center {{ content: none; }}
-    @bottom-center {{ content: none; }}
-  }}
 
   * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 
@@ -2079,142 +2024,119 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
 
   body {{
     font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
-    font-size: 10pt; line-height: 1.75; color: var(--text);
+    font-size: 9pt; line-height: 1.6; color: var(--text);
   }}
 
-  /* ── Cover ── */
+  /* ── Cover: compact blue header block ── */
   .cover {{
-    width: 210mm; height: 297mm;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: linear-gradient(175deg, #eff6ff 0%, #dce8fc 40%, #c5d8f8 100%);
-    position: relative; overflow: hidden;
-    page: cover;
+    background: linear-gradient(135deg, #0a2655 0%, #1e50b4 100%);
+    padding: 14px 20px 12px 20px;
+    margin-bottom: 12px;
+    border-radius: 3px;
+    color: #fff;
   }}
-  .cover::before {{
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 5px;
-    background: var(--primary);
+  .cover-inner {{
+    display: flex; align-items: center; justify-content: space-between;
   }}
-  .cover::after {{
-    content: '';
-    position: absolute; bottom: 0; left: 0; right: 0; height: 5px;
-    background: var(--primary);
+  .cover-left h1 {{
+    font-size: 16pt; font-weight: 700; letter-spacing: 2px; color: #fff;
   }}
-  .cover-label {{
-    font-size: 9pt; letter-spacing: 5px; text-transform: uppercase;
-    color: var(--blue); margin-bottom: 24px; font-weight: 500;
+  .cover-left .cover-sub {{
+    font-size: 7pt; color: rgba(255,255,255,0.65); letter-spacing: 1px; margin-top: 1px;
   }}
-  .cover-title {{
-    font-size: 30pt; font-weight: 700; color: var(--primary);
-    letter-spacing: 3px; margin-bottom: 8px;
-  }}
-  .cover-divider {{
-    width: 50px; height: 2px; background: var(--blue);
-    margin: 16px auto 20px;
-  }}
-  .cover-sub {{
-    font-size: 11pt; color: var(--blue); font-weight: 400;
-    letter-spacing: 1px; margin-bottom: 36px;
-  }}
-  .cover-meta {{
-    background: rgba(255,255,255,0.7);
-    border: 1px solid rgba(59,108,180,0.12);
-    border-radius: 6px;
-    padding: 16px 32px; text-align: center;
-  }}
-  .cover-meta p {{
-    font-size: 10pt; color: var(--gray); line-height: 2;
+  .cover-right {{
+    text-align: right; font-size: 7.5pt; color: rgba(255,255,255,0.8); line-height: 1.5;
   }}
 
   /* ── Running header ── */
   .running-header {{
     position: running(header);
-    font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", sans-serif;
-    font-size: 7.5pt; color: var(--blue);
+    font-size: 7pt; color: var(--blue);
     display: flex; justify-content: space-between;
-    border-bottom: 1px solid var(--light-gray);
-    padding-bottom: 4px; margin-bottom: 8px;
+    border-bottom: 0.5px solid var(--light-gray);
+    padding-bottom: 3px; margin-bottom: 4px;
   }}
 
   /* ── Content ── */
-  .content {{ padding-top: 8mm; }}
+  .content {{ padding-top: 0; }}
 
   .overview {{
-    font-size: 10pt; color: var(--text-secondary);
-    line-height: 1.9; margin-bottom: 22px;
-    padding: 14px 18px;
+    font-size: 9pt; color: var(--text-secondary);
+    line-height: 1.55; margin-bottom: 6px;
+    padding: 6px 10px;
     background: var(--bg);
-    border-left: 3px solid var(--blue);
-    border-radius: 0 4px 4px 0;
+    border-radius: 3px;
   }}
 
   .section-title {{
-    font-size: 13pt; font-weight: 700; color: var(--blue);
-    margin: 24px 0 12px 0; padding-bottom: 6px;
-    border-bottom: 1.5px solid var(--light-gray);
-    letter-spacing: 1px;
+    font-size: 10.5pt; font-weight: 700; color: var(--blue);
+    margin: 10px 0 4px 0; padding-bottom: 0;
+    border-bottom: none;
+  }}
+  .section-title::before {{
+    content: '●'; color: var(--blue); margin-right: 5px; font-size: 9pt;
   }}
 
   .news-item {{
-    margin-bottom: 16px; padding-bottom: 14px;
-    border-bottom: 1px dotted var(--light-gray);
+    margin-bottom: 5px; padding-bottom: 3px;
+    border-bottom: none;
   }}
-  .news-item:last-child {{ border-bottom: none; }}
 
   .item-title {{
-    font-size: 10.5pt; font-weight: 600; color: var(--blue);
-    margin-bottom: 3px; line-height: 1.6;
+    font-size: 9.5pt; font-weight: 600; color: var(--blue);
+    margin-bottom: 1px; line-height: 1.45;
   }}
   .item-title::before {{
-    content: '▸'; color: var(--accent); margin-right: 4px; font-size: 9pt;
+    content: '▸'; color: var(--accent); margin-right: 4px; font-size: 8pt;
   }}
   .item-date {{
-    font-size: 8pt; font-weight: 400; color: var(--gray);
-    margin-left: 6px;
+    font-size: 7pt; font-weight: 400; color: var(--gray);
+    margin-left: 4px;
   }}
 
   .item-summary {{
-    font-size: 9.5pt; color: var(--text-secondary);
-    line-height: 1.8; margin-bottom: 6px;
+    font-size: 8.5pt; color: var(--text-secondary);
+    line-height: 1.6; margin-bottom: 3px;
     text-align: justify;
   }}
 
   .item-insight {{
     background: var(--accent-bg);
-    border-left: 3px solid var(--accent);
-    border-radius: 0 4px 4px 0;
-    padding: 8px 14px; margin: 8px 0 6px 0;
+    border-radius: 3px;
+    padding: 5px 10px; margin: 4px 0 3px 0;
   }}
   .item-insight p {{
-    font-size: 9pt; color: #6b4f10;
-    line-height: 1.8; display: inline;
+    font-size: 8pt; color: #6b4f10;
+    line-height: 1.6; display: inline;
   }}
   .insight-label {{
-    font-size: 8pt; font-weight: 700; color: var(--accent);
-    letter-spacing: 2px; margin-right: 6px;
+    font-size: 7pt; font-weight: 700; color: var(--accent);
+    letter-spacing: 1px; margin-right: 4px;
   }}
 
-  .item-source {{
-    font-size: 7.5pt; color: #94a3b8; text-align: right;
-    margin-top: 4px;
+  .item-source-link {{
+    font-size: 6.5pt; color: #94a3b8; margin-top: 1px;
+    word-break: break-all;
+  }}
+  .item-source-link a {{
+    color: #64748b; text-decoration: none;
   }}
 
   .trend-text {{
-    font-size: 10pt; color: var(--text-secondary);
-    line-height: 1.9; text-align: justify;
-    padding: 14px 18px;
+    font-size: 9pt; color: var(--text-secondary);
+    line-height: 1.7; text-align: justify;
+    padding: 8px 12px;
     background: var(--bg);
-    border-radius: 4px;
+    border-radius: 3px;
   }}
 
   .recs-list {{
-    font-size: 10pt; color: var(--text-secondary);
+    font-size: 9pt; color: var(--text-secondary);
     line-height: 2; padding-left: 24px;
   }}
   .recs-list li {{ margin-bottom: 6px; }}
 
   @media print {{
-    .cover {{ page-break-after: always; }}
     .news-item {{ page-break-inside: avoid; }}
   }}
 </style>
@@ -2222,13 +2144,15 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
 <body>
 
 <div class="cover">
-  <div class="cover-label">MONTHLY REPORT</div>
-  <h1 class="cover-title">创新常州·对标快讯</h1>
-  <div class="cover-divider"></div>
-  <p class="cover-sub">Innovation Changzhou · Benchmarking Monthly</p>
-  <div class="cover-meta">
-    <p>{date_cn[:4]}年 第{issue_no}期 &nbsp;·&nbsp; 总第{total_no}期</p>
-    <p>{date_cn}</p>
+  <div class="cover-inner">
+    <div class="cover-left">
+      <h1>创新常州·对标快讯</h1>
+      <p class="cover-sub">Innovation Changzhou · Benchmarking Monthly</p>
+    </div>
+    <div class="cover-right">
+      <p>{date_cn[:4]}年 第{issue_no}期 &nbsp;·&nbsp; 总第{total_no}期</p>
+      <p>{date_cn}</p>
+    </div>
   </div>
 </div>
 
