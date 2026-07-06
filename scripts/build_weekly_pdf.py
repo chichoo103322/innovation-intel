@@ -11,12 +11,26 @@ from generate_html_pdf import html_to_pdf, get_issue_numbers
 
 
 def build_weekly_html(data, date_cn, issue_no, total_no):
-    """构建周报 HTML，完全复用项目已有 CSS 样式"""
+    """构建周报 HTML，固定4页模板：第1页定调 + 第2-4页素材"""
     overview_text = data.get("weekly_overview", "")
+
+    # ── 板块固定排序：科创政策速览 → 改革举措 → 各地科技委动态 → 上海（长三角）国创中心资讯 ──
+    SECTION_ORDER = ["各地科技委动态", "上海（长三角）国创中心资讯", "科创政策速览", "改革举措"]
+    raw_sections = data.get("sections", [])
+    ordered_sections = []
+    for name in SECTION_ORDER:
+        for sec in raw_sections:
+            if sec.get("name", "") == name:
+                ordered_sections.append(sec)
+                break
+    # 兜底：未匹配的板块追加到末尾
+    for sec in raw_sections:
+        if sec not in ordered_sections:
+            ordered_sections.append(sec)
 
     # ── 各板块内容 ──
     sections_html = ""
-    for sec in data.get("sections", []):
+    for sec in ordered_sections:
         sname = sec.get("name", "")
         sections_html += f'<h2 class="section-title">{sname}</h2>\n'
 
@@ -264,11 +278,13 @@ def build_weekly_html(data, date_cn, issue_no, total_no):
   <h2 class="section-title">本周综述</h2>
   <div class="overview">{overview_text}</div>
 
-  {sections_html}
-
   {trends_html}
 
   {suggestions_html}
+
+  <div style="page-break-before: always;"></div>
+
+  {sections_html}
 </div>
 
 </body></html>"""
