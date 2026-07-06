@@ -120,7 +120,11 @@ def validate_report(data: dict, report_type: str = "weekly") -> tuple[list, list
             title = item.get("title", "")
             date_str = item.get("date", "")
             summary = item.get("summary", "")
-            insight = item.get("insight", "") or item.get("innovation_insight", "")
+            insight_raw = item.get("insight", "") or item.get("innovation_insight", "")
+            if isinstance(insight_raw, list):
+                insight = " | ".join(insight_raw)  # join for validation
+            else:
+                insight = insight_raw
             source = item.get("source", "")
             url = item.get("url", "")
 

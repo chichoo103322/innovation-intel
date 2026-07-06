@@ -689,20 +689,28 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
             title = item.get("title", "")
             date_i = item.get("date", "")
             summary = item.get("summary", "")
-            insight = item.get("innovation_insight") or item.get("insight") or ""
+            insights = item.get("innovation_insight") or item.get("insight") or ""
+            if isinstance(insights, str):
+                insights = [insights]
             source = item.get("source", "")
             url = item.get("url", "")
             source_link_html = ""
             if url:
                 source_link_html = f'<p class="item-source-link">信息来源：<a href="{url}">{url}</a></p>'
+            labels = ["方案A", "方案B", "方案C"]
+            insight_blocks = ""
+            for i, ins in enumerate(insights):
+                label = f"创新洞察 · {labels[i]}：" if len(insights) > 1 else "创新洞察："
+                insight_blocks += f"""
+          <div class="item-insight">
+            <span class="insight-label">{label}</span>
+            <p>{ins}</p>
+          </div>"""
             items_html += f"""
         <div class="news-item">
           <h3 class="item-title">{title}<span class="item-date">{date_i}</span></h3>
           <p class="item-summary">{summary}</p>
-          <div class="item-insight">
-            <span class="insight-label">创新洞察</span>
-            <p>{insight}</p>
-          </div>
+          {insight_blocks}
           <p class="item-source">{source}</p>
           {source_link_html}
         </div>"""
@@ -952,20 +960,28 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
             title = item.get("title", "")
             date_i = item.get("date", "")
             summary = item.get("summary", "")
-            insight = item.get("insight") or item.get("innovation_insight") or ""
+            insights = item.get("insight") or item.get("innovation_insight") or ""
+            if isinstance(insights, str):
+                insights = [insights]
             source = item.get("source", "")
             url = item.get("url", "")
             source_link_html = ""
             if url:
                 source_link_html = f'<p class="item-source-link">信息来源：<a href="{url}">{url}</a></p>'
+            labels = ["方案A", "方案B", "方案C"]
+            insight_blocks = ""
+            for i, ins in enumerate(insights):
+                label = f"创新洞察 · {labels[i]}：" if len(insights) > 1 else "创新洞察："
+                insight_blocks += f"""
+          <div class="item-insight">
+            <span class="insight-label">{label}</span>
+            <p>{ins}</p>
+          </div>"""
             items_html += f"""
         <div class="news-item">
           <h3 class="item-title">{title}<span class="item-date">{date_i}</span></h3>
           <p class="item-summary">{summary}</p>
-          <div class="item-insight">
-            <span class="insight-label">创新洞察</span>
-            <p>{insight}</p>
-          </div>
+          {insight_blocks}
           <p class="item-source">{source}</p>
           {source_link_html}
         </div>"""
@@ -1498,20 +1514,28 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
             title = item.get("title", "")
             date_i = item.get("date", "")
             summary = item.get("summary", "")
-            insight = item.get("innovation_insight") or item.get("insight") or ""
+            insights = item.get("innovation_insight") or item.get("insight") or ""
+            if isinstance(insights, str):
+                insights = [insights]
             source = item.get("source", "")
             url = item.get("url", "")
             source_link_html = ""
             if url:
                 source_link_html = f'<p class="item-source-link">信息来源：<a href="{url}">{url}</a></p>'
+            labels = ["方案A", "方案B", "方案C"]
+            insight_blocks = ""
+            for i, ins in enumerate(insights):
+                label = f"创新洞察 · {labels[i]}：" if len(insights) > 1 else "创新洞察："
+                insight_blocks += f"""
+          <div class="item-insight">
+            <span class="insight-label">{label}</span>
+            <p>{ins}</p>
+          </div>"""
             items_html += f"""
         <div class="news-item">
           <h3 class="item-title">{title}<span class="item-date">{date_i}</span></h3>
           <p class="item-summary">{summary}</p>
-          <div class="item-insight">
-            <span class="insight-label">创新洞察</span>
-            <p>{insight}</p>
-          </div>
+          {insight_blocks}
           <p class="item-source">{source}</p>
           {source_link_html}
         </div>"""
