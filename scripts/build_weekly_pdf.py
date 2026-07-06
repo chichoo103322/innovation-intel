@@ -122,7 +122,10 @@ def build_weekly_html(data, date_cn, issue_no, total_no):
     color: #fff;
   }}
   .cover-inner {{
-    display: flex; align-items: flex-end; justify-content: space-between;
+    display: flex; align-items: stretch; justify-content: space-between;
+  }}
+  .cover-left {{
+    display: flex; flex-direction: column; justify-content: flex-end;
   }}
   .cover-left h1 {{
     font-size: 14pt; font-weight: 700; letter-spacing: 2px; color: #fff;
@@ -131,6 +134,7 @@ def build_weekly_html(data, date_cn, issue_no, total_no):
     font-size: 6.5pt; color: rgba(255,255,255,0.65); letter-spacing: 1px; margin-top: 0;
   }}
   .cover-right {{
+    display: flex; flex-direction: column; justify-content: flex-end;
     text-align: right; font-size: 7pt; color: rgba(255,255,255,0.8); line-height: 1.4;
   }}
 
@@ -162,12 +166,6 @@ def build_weekly_html(data, date_cn, issue_no, total_no):
     content: '●'; color: var(--blue); margin-right: 5px; font-size: 9pt;
   }}
 
-  /* ── Highlights ── */
-  .highlight-item {{
-    font-size: 8pt; color: var(--text-secondary);
-    line-height: 1.4; margin: 1px 0 1px 8px;
-  }}
-
   /* ── News items ── */
   .news-item {{
     margin-bottom: 3px; padding-bottom: 2px;
@@ -197,11 +195,11 @@ def build_weekly_html(data, date_cn, issue_no, total_no):
     padding: 3px 8px; margin: 2px 0 2px 0;
   }}
   .item-insight p {{
-    font-size: 9pt; color: #6b4f10;
+    font-size: 8.5pt; color: #6b4f10;
     line-height: 1.55; display: inline;
   }}
   .insight-label {{
-    font-size: 8pt; font-weight: 700; color: var(--accent);
+    font-size: 9.5pt; font-weight: 700; color: var(--accent);
     letter-spacing: 0.5px; margin-right: 3px;
   }}
 

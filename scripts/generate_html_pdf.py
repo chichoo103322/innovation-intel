@@ -718,23 +718,23 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
 <head>
 <meta charset="utf-8">
 <style>
-  @page {{
+    @page {{
     size: A4;
-    margin: 10mm 12mm 16mm 12mm;
+    margin: 8mm 10mm 10mm 10mm;
     @top-center {{
-      content: element(header);
+    content: element(header);
     }}
     @bottom-center {{
-      content: "— " counter(page) " —";
-      font-size: 7pt;
-      color: #94a3b8;
-      font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
+    content: "— " counter(page) " —";
+    font-size: 7pt;
+    color: #94a3b8;
+    font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
     }}
-  }}
+    }}
 
-  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+    * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 
-  :root {{
+    :root {{
     --primary: #0a2655;
     --blue: #1e50b4;
     --accent: #8b6914;
@@ -744,127 +744,139 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
     --bg: #f8fafc;
     --text: #1e293b;
     --text-secondary: #475569;
-  }}
+    }}
 
-  body {{
+    body {{
     font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
-    font-size: 9pt;
-    line-height: 1.6;
-    color: var(--text);
-  }}
+    font-size: 8pt; line-height: 1.45; color: var(--text);
+    }}
 
-  /* ── Cover: compact blue header block ── */
-  .cover {{
+    /* ── Cover: compact blue header block ── */
+    .cover {{
     background: linear-gradient(135deg, #0a2655 0%, #1e50b4 100%);
-    padding: 14px 20px 12px 20px;
-    margin-bottom: 12px;
+    padding: 10px 18px 8px 18px;
+    margin-bottom: 8px;
     border-radius: 3px;
     color: #fff;
-  }}
-  .cover-inner {{
-    display: flex; align-items: center; justify-content: space-between;
-  }}
-  .cover-left h1 {{
-    font-size: 16pt; font-weight: 700; letter-spacing: 2px; color: #fff;
-  }}
-  .cover-left .cover-sub {{
-    font-size: 7pt; color: rgba(255,255,255,0.65); letter-spacing: 1px; margin-top: 1px;
-  }}
-  .cover-right {{
-    text-align: right; font-size: 7.5pt; color: rgba(255,255,255,0.8); line-height: 1.5;
-  }}
+    }}
+    .cover-inner {{
+    display: flex; align-items: stretch; justify-content: space-between;
+    }}
+    .cover-left {{
+    display: flex; flex-direction: column; justify-content: flex-end;
+    }}
+    .cover-left h1 {{
+    font-size: 14pt; font-weight: 700; letter-spacing: 2px; color: #fff;
+    }}
+    .cover-left .cover-sub {{
+    font-size: 6.5pt; color: rgba(255,255,255,0.65); letter-spacing: 1px; margin-top: 0;
+    }}
+    .cover-right {{
+    display: flex; flex-direction: column; justify-content: flex-end;
+    text-align: right; font-size: 7pt; color: rgba(255,255,255,0.8); line-height: 1.4;
+    }}
 
-  /* ── Running header ── */
-  .running-header {{
+    /* ── Running header ── */
+    .running-header {{
     position: running(header);
-    font-size: 7pt; color: var(--blue);
+    font-size: 6.5pt; color: var(--blue);
     display: flex; justify-content: space-between;
     border-bottom: 0.5px solid var(--light-gray);
-    padding-bottom: 3px; margin-bottom: 4px;
-  }}
+    padding-bottom: 2px; margin-bottom: 2px;
+    }}
 
-  /* ── Content ── */
-  .content {{ padding-top: 0; }}
-
-  .overview {{
-    font-size: 9pt; color: var(--text-secondary);
-    line-height: 1.55; margin-bottom: 6px;
-    padding: 6px 10px;
+    /* ── Overview ── */
+    .overview {{
+    font-size: 8pt; color: var(--text-secondary);
+    line-height: 1.45; margin-bottom: 4px;
+    padding: 4px 8px;
     background: var(--bg);
-    border-radius: 3px;
-  }}
-
-  .section-title {{
-    font-size: 10.5pt; font-weight: 700; color: var(--blue);
-    margin: 10px 0 4px 0; padding-bottom: 0;
-    border-bottom: none;
-  }}
-  .section-title::before {{
-    content: '●'; color: var(--blue); margin-right: 5px; font-size: 9pt;
-  }}
-
-  .news-item {{
-    margin-bottom: 5px; padding-bottom: 3px;
-    border-bottom: none;
-  }}
-
-  .item-title {{
-    font-size: 9.5pt; font-weight: 600; color: var(--blue);
-    margin-bottom: 1px; line-height: 1.45;
-  }}
-  .item-title::before {{
-    content: '▸'; color: var(--accent); margin-right: 4px; font-size: 8pt;
-  }}
-  .item-date {{
-    font-size: 7pt; font-weight: 400; color: var(--gray);
-    margin-left: 4px;
-  }}
-
-  .item-summary {{
-    font-size: 8.5pt; color: var(--text-secondary);
-    line-height: 1.6; margin-bottom: 3px;
+    border-radius: 2px;
     text-align: justify;
-  }}
+    }}
 
-  .item-insight {{
+    /* ── Section titles ── */
+    .section-title {{
+    font-size: 9pt; font-weight: 700; color: var(--blue);
+    margin: 6px 0 2px 0; padding-bottom: 0;
+    }}
+    .section-title::before {{
+    content: '●'; color: var(--blue); margin-right: 5px; font-size: 9pt;
+    }}
+
+    /* ── News items ── */
+    .news-item {{
+    margin-bottom: 3px; padding-bottom: 2px;
+    }}
+
+    .item-title {{
+    font-size: 8.5pt; font-weight: 600; color: var(--blue);
+    margin-bottom: 1px; line-height: 1.35;
+    }}
+    .item-title::before {{
+    content: '▸'; color: var(--accent); margin-right: 4px; font-size: 8pt;
+    }}
+    .item-date {{
+    font-size: 6.5pt; font-weight: 400; color: var(--gray);
+    margin-left: 3px;
+    }}
+
+    .item-summary {{
+    font-size: 7.5pt; color: var(--text-secondary);
+    line-height: 1.45; margin-bottom: 2px;
+    text-align: justify;
+    }}
+
+    .item-insight {{
     background: var(--accent-bg);
-    border-radius: 3px;
-    padding: 5px 10px; margin: 4px 0 3px 0;
-  }}
-  .item-insight p {{
-    font-size: 8pt; color: #6b4f10;
-    line-height: 1.6; display: inline;
-  }}
-  .insight-label {{
-    font-size: 7pt; font-weight: 700; color: var(--accent);
-    letter-spacing: 1px; margin-right: 4px;
-  }}
+    border-radius: 2px;
+    padding: 3px 8px; margin: 2px 0 2px 0;
+    }}
+    .item-insight p {{
+    font-size: 8.5pt; color: #6b4f10;
+    line-height: 1.55; display: inline;
+    }}
+    .insight-label {{
+    font-size: 9.5pt; font-weight: 700; color: var(--accent);
+    letter-spacing: 0.5px; margin-right: 3px;
+    }}
 
-  .item-source {{
-    font-size: 6.5pt; color: #94a3b8; text-align: right;
-    margin-top: 2px;
-  }}
-  .item-source-link {{
-    font-size: 6.5pt; color: #94a3b8; margin-top: 1px;
+    .item-source {{
+    font-size: 6pt; color: #94a3b8; text-align: right;
+    margin-top: 1px;
+    }}
+    .item-source-link {{
+    font-size: 6pt; color: #94a3b8; margin-top: 0;
     word-break: break-all;
-  }}
-  .item-source-link a {{
+    }}
+    .item-source-link a {{
     color: #64748b; text-decoration: none;
-  }}
+    }}
 
-  .trend-text {{
-    font-size: 9pt; color: var(--text-secondary);
-    line-height: 1.7; text-align: justify;
-    padding: 8px 12px;
+    /* ── Trends ── */
+    .trend-text {{
+    font-size: 8pt; color: var(--text-secondary);
+    line-height: 1.5; margin: 3px 6px;
+    text-align: justify;
+    padding: 3px 6px;
     background: var(--bg);
-    border-radius: 3px;
-  }}
+    border-radius: 2px;
+    }}
 
-  /* ── Print ── */
-  @media print {{
+    /* ── Suggestions ── */
+    .suggestion-item {{
+    font-size: 8pt; color: var(--text-secondary);
+    line-height: 1.5; margin: 3px 6px;
+    text-align: justify;
+    padding: 3px 8px;
+    background: #f0f4ff;
+    border-radius: 2px;
+    }}
+
+    @media print {{
     .news-item {{ page-break-inside: avoid; }}
-  }}
-</style>
+    }}
+    </style>
 </head>
 <body>
 
@@ -963,23 +975,23 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
 <head>
 <meta charset="utf-8">
 <style>
-  @page {{
+    @page {{
     size: A4;
-    margin: 10mm 12mm 16mm 12mm;
+    margin: 8mm 10mm 10mm 10mm;
     @top-center {{
-      content: element(header);
+    content: element(header);
     }}
     @bottom-center {{
-      content: "— " counter(page) " —";
-      font-size: 7pt;
-      color: #94a3b8;
-      font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
+    content: "— " counter(page) " —";
+    font-size: 7pt;
+    color: #94a3b8;
+    font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
     }}
-  }}
+    }}
 
-  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+    * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 
-  :root {{
+    :root {{
     --primary: #0a2655;
     --blue: #1e50b4;
     --accent: #8b6914;
@@ -989,116 +1001,139 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
     --bg: #f8fafc;
     --text: #1e293b;
     --text-secondary: #475569;
-  }}
+    }}
 
-  body {{
+    body {{
     font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
-    font-size: 9pt; line-height: 1.6; color: var(--text);
-  }}
+    font-size: 8pt; line-height: 1.45; color: var(--text);
+    }}
 
-  /* ── Cover ── */
-  .cover {{
+    /* ── Cover: compact blue header block ── */
+    .cover {{
     background: linear-gradient(135deg, #0a2655 0%, #1e50b4 100%);
-    padding: 14px 20px 12px 20px;
-    margin-bottom: 12px;
+    padding: 10px 18px 8px 18px;
+    margin-bottom: 8px;
     border-radius: 3px;
     color: #fff;
-  }}
-  .cover-inner {{
-    display: flex; align-items: center; justify-content: space-between;
-  }}
-  .cover-left h1 {{
-    font-size: 16pt; font-weight: 700; letter-spacing: 2px; color: #fff;
-  }}
-  .cover-left .cover-sub {{
-    font-size: 7pt; color: rgba(255,255,255,0.65); letter-spacing: 1px; margin-top: 1px;
-  }}
-  .cover-right {{
-    text-align: right; font-size: 7.5pt; color: rgba(255,255,255,0.8); line-height: 1.5;
-  }}
+    }}
+    .cover-inner {{
+    display: flex; align-items: stretch; justify-content: space-between;
+    }}
+    .cover-left {{
+    display: flex; flex-direction: column; justify-content: flex-end;
+    }}
+    .cover-left h1 {{
+    font-size: 14pt; font-weight: 700; letter-spacing: 2px; color: #fff;
+    }}
+    .cover-left .cover-sub {{
+    font-size: 6.5pt; color: rgba(255,255,255,0.65); letter-spacing: 1px; margin-top: 0;
+    }}
+    .cover-right {{
+    display: flex; flex-direction: column; justify-content: flex-end;
+    text-align: right; font-size: 7pt; color: rgba(255,255,255,0.8); line-height: 1.4;
+    }}
 
-  /* ── Running header ── */
-  .running-header {{
+    /* ── Running header ── */
+    .running-header {{
     position: running(header);
-    font-size: 7pt; color: var(--blue);
+    font-size: 6.5pt; color: var(--blue);
     display: flex; justify-content: space-between;
     border-bottom: 0.5px solid var(--light-gray);
-    padding-bottom: 3px; margin-bottom: 4px;
-  }}
+    padding-bottom: 2px; margin-bottom: 2px;
+    }}
 
-  /* ── Content ── */
-  .content {{ padding-top: 0; }}
-
-  .overview {{
-    font-size: 9pt; color: var(--text-secondary);
-    line-height: 1.55; margin-bottom: 6px;
-    padding: 6px 10px;
+    /* ── Overview ── */
+    .overview {{
+    font-size: 8pt; color: var(--text-secondary);
+    line-height: 1.45; margin-bottom: 4px;
+    padding: 4px 8px;
     background: var(--bg);
-    border-radius: 3px;
-  }}
-
-  .section-title {{
-    font-size: 10.5pt; font-weight: 700; color: var(--blue);
-    margin: 10px 0 4px 0; padding-bottom: 0;
-    border-bottom: none;
-  }}
-  .section-title::before {{
-    content: '●'; color: var(--blue); margin-right: 5px; font-size: 9pt;
-  }}
-
-  .news-item {{
-    margin-bottom: 5px; padding-bottom: 3px;
-    border-bottom: none;
-  }}
-
-  .item-title {{
-    font-size: 9.5pt; font-weight: 600; color: var(--blue);
-    margin-bottom: 1px; line-height: 1.45;
-  }}
-  .item-title::before {{
-    content: '▸'; color: var(--accent); margin-right: 4px; font-size: 8pt;
-  }}
-  .item-date {{
-    font-size: 7pt; font-weight: 400; color: var(--gray);
-    margin-left: 4px;
-  }}
-
-  .item-summary {{
-    font-size: 8.5pt; color: var(--text-secondary);
-    line-height: 1.6; margin-bottom: 3px;
+    border-radius: 2px;
     text-align: justify;
-  }}
+    }}
 
-  .item-insight {{
+    /* ── Section titles ── */
+    .section-title {{
+    font-size: 9pt; font-weight: 700; color: var(--blue);
+    margin: 6px 0 2px 0; padding-bottom: 0;
+    }}
+    .section-title::before {{
+    content: '●'; color: var(--blue); margin-right: 5px; font-size: 9pt;
+    }}
+
+    /* ── News items ── */
+    .news-item {{
+    margin-bottom: 3px; padding-bottom: 2px;
+    }}
+
+    .item-title {{
+    font-size: 8.5pt; font-weight: 600; color: var(--blue);
+    margin-bottom: 1px; line-height: 1.35;
+    }}
+    .item-title::before {{
+    content: '▸'; color: var(--accent); margin-right: 4px; font-size: 8pt;
+    }}
+    .item-date {{
+    font-size: 6.5pt; font-weight: 400; color: var(--gray);
+    margin-left: 3px;
+    }}
+
+    .item-summary {{
+    font-size: 7.5pt; color: var(--text-secondary);
+    line-height: 1.45; margin-bottom: 2px;
+    text-align: justify;
+    }}
+
+    .item-insight {{
     background: var(--accent-bg);
-    border-radius: 3px;
-    padding: 5px 10px; margin: 4px 0 3px 0;
-  }}
-  .item-insight p {{
-    font-size: 8pt; color: #6b4f10;
-    line-height: 1.6; display: inline;
-  }}
-  .insight-label {{
-    font-size: 7pt; font-weight: 700; color: var(--accent);
-    letter-spacing: 1px; margin-right: 4px;
-  }}
+    border-radius: 2px;
+    padding: 3px 8px; margin: 2px 0 2px 0;
+    }}
+    .item-insight p {{
+    font-size: 8.5pt; color: #6b4f10;
+    line-height: 1.55; display: inline;
+    }}
+    .insight-label {{
+    font-size: 9.5pt; font-weight: 700; color: var(--accent);
+    letter-spacing: 0.5px; margin-right: 3px;
+    }}
 
-  .item-source {{
-    font-size: 6.5pt; color: #94a3b8; text-align: right;
-    margin-top: 2px;
-  }}
-  .item-source-link {{
-    font-size: 6.5pt; color: #94a3b8; margin-top: 1px;
+    .item-source {{
+    font-size: 6pt; color: #94a3b8; text-align: right;
+    margin-top: 1px;
+    }}
+    .item-source-link {{
+    font-size: 6pt; color: #94a3b8; margin-top: 0;
     word-break: break-all;
-  }}
-  .item-source-link a {{
+    }}
+    .item-source-link a {{
     color: #64748b; text-decoration: none;
-  }}
+    }}
 
-  @media print {{
+    /* ── Trends ── */
+    .trend-text {{
+    font-size: 8pt; color: var(--text-secondary);
+    line-height: 1.5; margin: 3px 6px;
+    text-align: justify;
+    padding: 3px 6px;
+    background: var(--bg);
+    border-radius: 2px;
+    }}
+
+    /* ── Suggestions ── */
+    .suggestion-item {{
+    font-size: 8pt; color: var(--text-secondary);
+    line-height: 1.5; margin: 3px 6px;
+    text-align: justify;
+    padding: 3px 8px;
+    background: #f0f4ff;
+    border-radius: 2px;
+    }}
+
+    @media print {{
     .news-item {{ page-break-inside: avoid; }}
-  }}
-</style>
+    }}
+    </style>
 </head>
 <body>
 
@@ -1499,23 +1534,23 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
 <head>
 <meta charset="utf-8">
 <style>
-  @page {{
+    @page {{
     size: A4;
-    margin: 10mm 12mm 16mm 12mm;
+    margin: 8mm 10mm 10mm 10mm;
     @top-center {{
-      content: element(header);
+    content: element(header);
     }}
     @bottom-center {{
-      content: "— " counter(page) " —";
-      font-size: 7pt;
-      color: #94a3b8;
-      font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
+    content: "— " counter(page) " —";
+    font-size: 7pt;
+    color: #94a3b8;
+    font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
     }}
-  }}
+    }}
 
-  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+    * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 
-  :root {{
+    :root {{
     --primary: #0a2655;
     --blue: #1e50b4;
     --accent: #8b6914;
@@ -1525,130 +1560,146 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
     --bg: #f8fafc;
     --text: #1e293b;
     --text-secondary: #475569;
-  }}
+    }}
 
-  body {{
+    body {{
     font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
-    font-size: 9pt; line-height: 1.6; color: var(--text);
-  }}
+    font-size: 8pt; line-height: 1.45; color: var(--text);
+    }}
 
-  /* ── Cover: compact blue header block ── */
-  .cover {{
+    /* ── Cover: compact blue header block ── */
+    .cover {{
     background: linear-gradient(135deg, #0a2655 0%, #1e50b4 100%);
-    padding: 14px 20px 12px 20px;
-    margin-bottom: 12px;
+    padding: 10px 18px 8px 18px;
+    margin-bottom: 8px;
     border-radius: 3px;
     color: #fff;
-  }}
-  .cover-inner {{
-    display: flex; align-items: center; justify-content: space-between;
-  }}
-  .cover-left h1 {{
-    font-size: 16pt; font-weight: 700; letter-spacing: 2px; color: #fff;
-  }}
-  .cover-left .cover-sub {{
-    font-size: 7pt; color: rgba(255,255,255,0.65); letter-spacing: 1px; margin-top: 1px;
-  }}
-  .cover-right {{
-    text-align: right; font-size: 7.5pt; color: rgba(255,255,255,0.8); line-height: 1.5;
-  }}
+    }}
+    .cover-inner {{
+    display: flex; align-items: stretch; justify-content: space-between;
+    }}
+    .cover-left {{
+    display: flex; flex-direction: column; justify-content: flex-end;
+    }}
+    .cover-left h1 {{
+    font-size: 14pt; font-weight: 700; letter-spacing: 2px; color: #fff;
+    }}
+    .cover-left .cover-sub {{
+    font-size: 6.5pt; color: rgba(255,255,255,0.65); letter-spacing: 1px; margin-top: 0;
+    }}
+    .cover-right {{
+    display: flex; flex-direction: column; justify-content: flex-end;
+    text-align: right; font-size: 7pt; color: rgba(255,255,255,0.8); line-height: 1.4;
+    }}
 
-  /* ── Running header ── */
-  .running-header {{
+    /* ── Running header ── */
+    .running-header {{
     position: running(header);
-    font-size: 7pt; color: var(--blue);
+    font-size: 6.5pt; color: var(--blue);
     display: flex; justify-content: space-between;
     border-bottom: 0.5px solid var(--light-gray);
-    padding-bottom: 3px; margin-bottom: 4px;
-  }}
+    padding-bottom: 2px; margin-bottom: 2px;
+    }}
 
-  /* ── Content ── */
-  .content {{ padding-top: 0; }}
-
-  .overview {{
-    font-size: 9pt; color: var(--text-secondary);
-    line-height: 1.55; margin-bottom: 6px;
-    padding: 6px 10px;
+    /* ── Overview ── */
+    .overview {{
+    font-size: 8pt; color: var(--text-secondary);
+    line-height: 1.45; margin-bottom: 4px;
+    padding: 4px 8px;
     background: var(--bg);
-    border-radius: 3px;
-  }}
-
-  .section-title {{
-    font-size: 10.5pt; font-weight: 700; color: var(--blue);
-    margin: 10px 0 4px 0; padding-bottom: 0;
-    border-bottom: none;
-  }}
-  .section-title::before {{
-    content: '●'; color: var(--blue); margin-right: 5px; font-size: 9pt;
-  }}
-
-  .news-item {{
-    margin-bottom: 5px; padding-bottom: 3px;
-    border-bottom: none;
-  }}
-
-  .item-title {{
-    font-size: 9.5pt; font-weight: 600; color: var(--blue);
-    margin-bottom: 1px; line-height: 1.45;
-  }}
-  .item-title::before {{
-    content: '▸'; color: var(--accent); margin-right: 4px; font-size: 8pt;
-  }}
-  .item-date {{
-    font-size: 7pt; font-weight: 400; color: var(--gray);
-    margin-left: 4px;
-  }}
-
-  .item-summary {{
-    font-size: 8.5pt; color: var(--text-secondary);
-    line-height: 1.6; margin-bottom: 3px;
+    border-radius: 2px;
     text-align: justify;
-  }}
+    }}
 
-  .item-insight {{
+    /* ── Section titles ── */
+    .section-title {{
+    font-size: 9pt; font-weight: 700; color: var(--blue);
+    margin: 6px 0 2px 0; padding-bottom: 0;
+    }}
+    .section-title::before {{
+    content: '●'; color: var(--blue); margin-right: 5px; font-size: 9pt;
+    }}
+
+    /* ── News items ── */
+    .news-item {{
+    margin-bottom: 3px; padding-bottom: 2px;
+    }}
+
+    .item-title {{
+    font-size: 8.5pt; font-weight: 600; color: var(--blue);
+    margin-bottom: 1px; line-height: 1.35;
+    }}
+    .item-title::before {{
+    content: '▸'; color: var(--accent); margin-right: 4px; font-size: 8pt;
+    }}
+    .item-date {{
+    font-size: 6.5pt; font-weight: 400; color: var(--gray);
+    margin-left: 3px;
+    }}
+
+    .item-summary {{
+    font-size: 7.5pt; color: var(--text-secondary);
+    line-height: 1.45; margin-bottom: 2px;
+    text-align: justify;
+    }}
+
+    .item-insight {{
     background: var(--accent-bg);
-    border-radius: 3px;
-    padding: 5px 10px; margin: 4px 0 3px 0;
-  }}
-  .item-insight p {{
-    font-size: 8pt; color: #6b4f10;
-    line-height: 1.6; display: inline;
-  }}
-  .insight-label {{
-    font-size: 7pt; font-weight: 700; color: var(--accent);
-    letter-spacing: 1px; margin-right: 4px;
-  }}
+    border-radius: 2px;
+    padding: 3px 8px; margin: 2px 0 2px 0;
+    }}
+    .item-insight p {{
+    font-size: 8.5pt; color: #6b4f10;
+    line-height: 1.55; display: inline;
+    }}
+    .insight-label {{
+    font-size: 9.5pt; font-weight: 700; color: var(--accent);
+    letter-spacing: 0.5px; margin-right: 3px;
+    }}
 
-  .item-source {{
-    font-size: 6.5pt; color: #94a3b8; text-align: right;
-    margin-top: 2px;
-  }}
-  .item-source-link {{
-    font-size: 6.5pt; color: #94a3b8; margin-top: 1px;
+    .item-source {{
+    font-size: 6pt; color: #94a3b8; text-align: right;
+    margin-top: 1px;
+    }}
+    .item-source-link {{
+    font-size: 6pt; color: #94a3b8; margin-top: 0;
     word-break: break-all;
-  }}
-  .item-source-link a {{
+    }}
+    .item-source-link a {{
     color: #64748b; text-decoration: none;
-  }}
+    }}
 
-  .trend-text {{
-    font-size: 9pt; color: var(--text-secondary);
-    line-height: 1.7; text-align: justify;
-    padding: 8px 12px;
+    /* ── Trends ── */
+    .trend-text {{
+    font-size: 8pt; color: var(--text-secondary);
+    line-height: 1.5; margin: 3px 6px;
+    text-align: justify;
+    padding: 3px 6px;
     background: var(--bg);
-    border-radius: 3px;
-  }}
+    border-radius: 2px;
+    }}
 
-  .recs-list {{
-    font-size: 9pt; color: var(--text-secondary);
-    line-height: 2; padding-left: 24px;
-  }}
-  .recs-list li {{ margin-bottom: 6px; }}
+    /* ── Suggestions ── */
+    .suggestion-item {{
+    font-size: 8pt; color: var(--text-secondary);
+    line-height: 1.5; margin: 3px 6px;
+    text-align: justify;
+    padding: 3px 8px;
+    background: #f0f4ff;
+    border-radius: 2px;
+    }}
 
-  @media print {{
+    /* ── Recommendations list (monthly) ── */
+    .recs-list {{
+    font-size: 8pt; color: var(--text-secondary);
+    line-height: 1.8; padding-left: 24px;
+    }}
+    .recs-list li {{ margin-bottom: 4px; }}
+
+    @media print {{
     .news-item {{ page-break-inside: avoid; }}
-  }}
-</style>
+    }}
+    </style>
 </head>
 <body>
 
