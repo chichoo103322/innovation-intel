@@ -12,6 +12,27 @@ from datetime import date
 PROJECT_DIR = Path(__file__).parent.parent
 SCRIPT_DIR = Path(__file__).parent
 CACHE_DIR = PROJECT_DIR / "cache"
+ISSUE_FILE = CACHE_DIR / "issue_counter.json"
+
+sys.path.insert(0, str(PROJECT_DIR))  # 确保能 import run_daily
+
+
+def get_issue_numbers() -> tuple:
+    """获取当前期号，每次调用自动 +1。"""
+    ISSUE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    if ISSUE_FILE.exists():
+        data = json.loads(ISSUE_FILE.read_text())
+    else:
+        data = {"issue": 0, "total": 0}
+    data["issue"] += 1
+    data["total"] += 1
+    ISSUE_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2))
+    return data["issue"], data["total"]
+
+
+def reset_issue_counter():
+    """手动重置期号计数器。"""
+    ISSUE_FILE.write_text(json.dumps({"issue": 0, "total": 0}, ensure_ascii=False, indent=2))
 
 # ── 内容获取 ──────────────────────────────────────────
 
@@ -152,85 +173,68 @@ WEEKLY_SYSTEM_PROMPT = """你是一位资深科技创新情报分析师，服务
 以上5个方向搜索时额外加入关键词"算力+硬件+场景+生态""AI产业链""创新链""全链条"，构建完整产业链视野。
 
 ═══════════════════════════════════════════════════════════
-创新洞察深度要求（每条80-150字，精炼简洁、直击要点）
+创新洞察撰写规范（每条出3版洞察，方案A/B/C各120-160字，用户择优选用）
 ═══════════════════════════════════════════════════════════
 
-每条 insight 必须做到以下9个维度中至少5个（★为必选项，篇幅精简切忌冗长）：
+每条信息必须撰写3版不同角度的创新洞察，标注为方案A、方案B、方案C：
+- **方案A · 行动建议型**：以"建议常州......"开篇，给出具体可操作的政策建议（由哪个部门牵头、对接什么资源、分几步走），扣合三名工程/双高协同/本地产业园区等政策抓手。
+- **方案B · 竞争策略型**：以周边万亿城市（必须点名苏州/无锡/南京/南通中至少2个）的同类布局为镜鉴，分析常州的差异化空间和紧迫性，切忌"值得借鉴"空话。
+- **方案C · 前瞻布局型**：着眼3-5年趋势，分析该信息预示的产业变革方向，指出常州应提前布局的技术/人才/基础设施，关联五大产业中至少1个的未来演进。
 
-### ★ 1. 对标常州五大未来产业方向（必选）
-必须指明该信息与常州 AIDC/具身智能/未来存储/未来能源/液冷 五大产业方向中至少一个的关联：
-- 该政策/事件对常州相关产业是机遇还是威胁？
-- 常州在该赛道上的现有基础和差距是什么？
-- 如何在"算力+硬件+场景+生态"全链条中找到常州的卡位点？
+每版洞察必须同时满足以下要求：
+★ 1. **对标五大产业**：关联AIDC/具身智能/未来存储/未来能源/液冷至少一个
+★ 2. **嫁接常州产业基础**：结合新能源（比亚迪/理想/中创新航/蜂巢能源）、高端装备、新能源汽车等既有优势
+★ 3. **扣合政策抓手**：关联三名工程（名园名院名企）、双高协同（高新区+高水平大学）、龙城金谷（科技金融）中至少1-2个
+★ 4. **对接市委市政府工作**：结合常州市委市政府经济工作会议部署和企业调研关注点（技术卡脖子/产业链短板/人才缺口/融资需求）
+★ 5. **可操作可落地**：给出牵头部门+对接资源+行动方向，避免空话套话
 
-### ★ 2. 嫁接常州既有产业基础（必选）
-结合常州新能源（比亚迪/理想/中创新航/蜂巢能源）、高端装备（智能制造/数控机床）、新能源汽车及零部件等既有优势产业，指出如何借此基础切入新赛道。
+### 严格禁止：
+- "值得借鉴""有参考价值""值得关注"等空话套话
+- 三版洞察之间内容雷同——必须从不同角度切入
+- 脱离常州实际的泛泛分析
+- 照搬原文不做本地化转化
 
-### ★ 3. 周边万亿城市竞争态势分析（必选）
-必须对比苏州/无锡/南京/南通中至少2个城市的同类布局，明确指出：
-- 这些城市在同一赛道上已做了什么？（具体政策名/金额/时间）
-- 常州的差异化空间在哪里？（不是follow，而是找到独特切入点）
-- 如果周边城市已大幅领先，常州的紧迫性是什么？
+═══════════════════════════════════════════════════════════
+🔴 科创政策速览板块特殊要求
+═══════════════════════════════════════════════════════════
 
-### 4. 29座万亿之城差异化定位
-分析常州在29座GDP万亿城市中的独特定位——常州是"新能源之都"+"国际化智造名城"，如何在新能源与智能制造的交叉点上找到不可替代的位置？
-
-### ★ 5. 紧扣常州政策抓手（必选）
-至少关联以下政策工具中的1-2个，**不强制特定园区，只要是常州本地的产业载体即可**：
-- **三名工程**：名园（科教城/高新区/中以常州创新园/各省级开发区等）+ 名院（与高水平大学合作）+ 名企（理想/比亚迪/中创新航/蜂巢能源等龙头企业）
-- **双高协同**：高新区与高水平大学协同创新
-- 常州本地产业园区/创新载体：科教城、高新区、中以常州创新园、各省级开发区、特色产业园等
-- 科技创新政策：算力券、研发补贴、人才引进等
-
-### ★ 6. 对接市委市政府经济工作会议精神和企业调研关注点（必选）
-每条 insight 必须与以下至少一个方向建立关联：
-- **经济工作会议精神**：常州市委市政府近期经济工作会议部署的科技创新重点任务、产业发展主攻方向、年度攻坚目标
-- **企业调研关注点**：市领导调研重点企业时关注的痛点（如技术卡脖子环节、产业链配套短板、人才缺口、融资需求等）
-- 将外部情报转化为回应上述关注点的具体建议
-
-### 7. "算力+硬件+场景+生态"全链条分析
-分析该信息如何嵌入"算力+硬件+场景+生态"的AI产业链创新链框架——常州的优势在"硬件"（智能制造）和"场景"（新能源/工业AI），短板在"算力"和"生态"，如何补短板拉长板？
-
-### 8. 具体可操作建议（精简，1-2句即可）
-给出下一步行动的具体方向：
-- 由哪个部门牵头？对接什么资源？
-
-### 9. 严格禁止的写法
-- ✕ "值得借鉴""有参考价值""值得关注"——空洞无物
-- ✕ "常州也应......""建议常州......"——只有结论没有路径
-- ✕ 脱离常州实际的泛泛建议
-- ✕ 照搬原文不做本地化转化
-- ✕ 数字/政策名称与原文不符
+每条政策必须：
+1. title 包含正式政策文件名（《》），如"深圳市印发《深圳市具身智能机器人产业发展行动计划（2026-2028年）》"
+2. summary 首句格式："X月X日，XX市印发《XX方案》，......"——必须有具体发布日期和政策全称
+3. 没有《》正式文件名的内容一律不纳入本板块
+4. 排除会议/论坛/活动新闻、领导调研/考察、常州本地新闻
 
 ═══════════════════════════════════════════════════════════
 输出格式
 ═══════════════════════════════════════════════════════════
 
-完成搜索和分析后，你必须以如下 JSON 格式输出（不要包含任何其他文字，只输出 JSON）：
-
 ```json
 {
-  "weekly_overview": "200-250字本周综述。概括本周最重要的3-4条动态主线，明确对常州的整体启示。必须结合常州五大产业方向和周边竞争格局，点明本周出现的机遇窗口和竞争威胁。",
+  "weekly_overview": "200-250字本周综述。概括本周最重要的3-4条动态主线，明确对常州的整体启示。",
   "sections": [
     {
       "name": "各地科技委动态",
       "items": [
         {
-          "title": "信息标题（机构全称准确，如'江苏省委科技委员会第X次全体会议'）",
-          "date": "YYYY.M.D（🔴只能填正文事件实际发生日期，严禁填网页发布日期。素材中区分'事件日期'与'网页发布'，只取事件日期。事件日期缺失填'近日'）",
-          "summary": "80-120字，短句直击核心。格式：主体+事件+关键数据+时间节点。信源标注：如有多源验证写'据XX官方发布'；单信源写'（单信源，待进一步确认）'",
-          "insight": "80-150字（精炼简洁）。必须包含：①五大产业方向关联 ②常州产业基础嫁接点 ③至少2个周边城市竞争对比 ④政策抓手（三名工程/双高协同/本地产业园区）⑤对接经济工作会议精神/企业调研关注点 ⑥可操作建议+牵头部门",
-          "source": "来源机构名称（全称）",
-          "url": "🔴必填！从素材中复制原文URL，不得为空、不得编造、不得省略",
+          "title": "标题（机构全称准确，政策板块必须含《政策名称》）",
+          "date": "YYYY.M.D（事件实际发生日期，严禁填网页发布日期）",
+          "summary": "80-120字。格式：X月X日，XX主体+事件+关键数据。政策板块首句必须为'X月X日，XX市印发《XX方案》，......'",
+          "insight": [
+            "方案A：行动建议型——建议常州......（120-160字，含牵头部门+对接资源）",
+            "方案B：竞争策略型——对比XX城市......（120-160字，点名至少2个周边城市）",
+            "方案C：前瞻布局型——着眼3-5年......（120-160字，关联五大产业未来演进）"
+          ],
+          "source": "来源机构全称",
+          "url": "原文URL（必填，从素材复制）"
         }
       ]
     }
   ],
-  "trend_analysis": "200-300字本周趋势分析。归纳2-3条跨板块的共性趋势，重点分析：①常州在苏州/无锡/南京/南通竞争中的差异化空间 ②常州在AIDC/具身智能/未来能源等赛道上的本周最新态势 ③结合常州市委市政府科技创新工作部署，提出下一步行动的优先级建议"
+  "trend_analysis": "200-300字本周趋势分析。归纳2-3条跨板块共性趋势，结合常州五大产业方向和周边竞争格局。"
 }
 ```
 
-记住：只输出 JSON，不要有任何解释、前缀或后缀文字。输出前必须逐条通过第6层自检清单的7项检查。"""
+记住：只输出 JSON。输出前必须逐条通过第6层自检清单的7项检查。"""
 
 WEEKLY_USER_PROMPT_TEMPLATE = """今天是{today_cn}。请联网搜索本周（{week_start}至{week_end}）科技创新领域重要动态，生成《创新常州·对标快讯》周报。
 
@@ -366,7 +370,9 @@ WEEKLY_USER_PROMPT_TEMPLATE = """今天是{today_cn}。请联网搜索本周（{
 ═══════════════════════════════════════════════════════════
 创新洞察自检（每条必查，输出前逐项打勾）
 ═══════════════════════════════════════════════════════════
-□ 1. 是否关联了常州AIDC/具身智能/未来存储/未来能源/液冷五大产业中至少一个？
+□ 1. 是否每条信息出了3版洞察（方案A行动建议型 + 方案B竞争策略型 + 方案C前瞻布局型）？
+□ 2. 三版洞察是否从不同角度切入、内容不雷同？
+□ 3. 是否关联了常州AIDC/具身智能/未来存储/未来能源/液冷五大产业中至少一个？
 □ 2. 是否结合了常州既有产业基础（新能源/高端装备/新能源汽车等）？
 □ 3. 是否对比了苏州/无锡/南京/南通中至少2个城市的同类布局？
 □ 4. 是否在29座万亿之城中明确了常州的差异化定位？
@@ -527,202 +533,8 @@ def _get_supplementary_urls(report_type: str = "weekly") -> list[dict]:
 
 
 def get_weekly_data(api_key: str = None, sample: bool = False) -> dict:
-    """新管线：真实信源采集 → AI 摘要+洞察"""
-    if sample or not api_key:
-        return _sample_data()
-
-    from datetime import date, timedelta
-    sys.path.insert(0, str(SCRIPT_DIR))
-
-    today = date.today()
-    today_cn = today.strftime("%Y年%m月%d日")
-    week_start_cn = (today - timedelta(days=today.weekday())).strftime("%Y年%m月%d日")
-    week_end_cn = today.strftime("%Y年%m月%d日")
-
-    # ── 阶段1: 真实信源采集 ──
-    print(f"\n{'='*65}")
-    print(f"  阶段1: 真实信源采集（近7天 .gov.cn 等权威网站）")
-    print(f"{'='*65}")
-    from crawler import crawl_all, SourceItem, fetch_supplementary_articles, merge_sources
-    crawled = crawl_all(days_back=7, max_per_source=8)
-
-    # ── 阶段1b: 补充 WebSearch 验证过的文章 ──
-    supplementary_urls = _get_supplementary_urls("weekly")
-    if supplementary_urls:
-        print(f"\n  补充采集: 从指定渠道获取 {len(supplementary_urls)} 篇验证文章...")
-        supp_items = fetch_supplementary_articles(supplementary_urls)
-        crawled = merge_sources(crawled, supp_items)
-        for dim, items in crawled.items():
-            print(f"    [{dim}]: {len(items)} 条（合并后）")
-
-    # 构建真实素材上下文
-    context_parts = []
-    total_articles = 0
-    for dim, items in crawled.items():
-        context_parts.append(f"\n### {dim}（共{len(items)}条真实素材）")
-        for i, it in enumerate(items):
-            context_parts.append(
-                f"[{i+1}] 标题: {it.title}\n"
-                f"    🔴事件日期（必须用于报告date字段）: {it.event_date or '未知'}\n"
-                f"    网页发布日期（仅供参考，严禁用作报告date字段）: {it.date_str}\n"
-                f"    来源: {it.source} ({it.domain}, 评分{it.score})\n"
-                f"    链接: {it.url}\n"
-                f"    摘要: {it.summary[:150]}"
-            )
-            total_articles += 1
-
-    if total_articles < 4:
-        print(f"[警告] 仅采集到 {total_articles} 条真实素材，不足生成报告。使用示例数据。")
-        return _sample_data()
-
-    # ── 爬虫后过滤：移除不相关内容 ──
-    _filter_crawled_irrelevant(crawled)
-
-    # 缓存原始采集素材供事实核查使用
-    crawled_for_cache = {}
-    for dim, items in crawled.items():
-        crawled_for_cache[dim] = [it.to_dict() for it in items]
-    cache_file = CACHE_DIR / "crawled_sources.json"
-    cache_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(cache_file, "w", encoding="utf-8") as f:
-        json.dump(crawled_for_cache, f, ensure_ascii=False, indent=2)
-
-    crawled_context = "\n".join(context_parts)
-
-    # ── 阶段2: AI 基于真实素材进行摘要和洞察 ──
-    print(f"\n{'='*65}")
-    print(f"  阶段2: AI 基于 {total_articles} 条真实素材生成摘要+洞察")
-    print(f"{'='*65}")
-
-    from openai import OpenAI
-    client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
-
-    curation_prompt = f"""你是常州科技创新情报分析师，专责为常州市委市政府提供决策参考。以下是从 .gov.cn 等权威网站真实采集的本周最新信息。
-
-请基于这些**真实素材**完成以下工作：
-1. 从素材中筛选最有价值的8-16条信息，严格归入以下4个板块（板块名称不可更改）：
-   - 各地科技委动态
-   - 上海（长三角）国创中心资讯
-   - 科创政策速览
-   - 改革举措
-   ⚠️ 每个板块至少1-2条。素材充分时优先确保4大板块均有覆盖，宁可每个板块各取1条精品也比分板块空缺要好。
-2. 为每条信息撰写80-120字摘要（基于原文事实，不得编造原文没有的数据）
-3. 为每条信息撰写120-160字创新洞察（精炼简洁，直击要点，下文有详细要求）
-4. 撰写200-250字本周综述和200-300字趋势分析
-
-⛔ 关键约束：
-- 🔴 **URL必填**：每条素材都标注了"链接:"字段，你必须**原样复制该URL到输出JSON的url字段**。这是硬性要求，url为空则整条信息作废。每条item的url必须与素材中的链接一致。
-- 🔴 **补充采集文章优先选用**：素材来源标注为"补充采集"的文章已经过人工验证，真实可靠，应优先纳入对应板块。尤其是上海（长三角）国创中心资讯板块的补充文章，必须至少选用1条。
-- **只能使用素材中提供的信息**，不得编造素材中不存在的会议、政策、数据
-- **时效性强制要求**：素材标注的事件日期必须在近2周内（{week_start_cn}至{week_end_cn}），超出范围或日期不明确的素材直接丢弃不用
-- **日期使用规则**：素材中标注了"事件日期"和"网页发布"两个日期，你必须使用**事件日期**（格式YYYY.M.D，如2026.6.30）。如果事件日期为空，则以网页发布日期为准。summary 中如需标注信源报道日期，写在摘要正文末尾，**绝对不要写在 date 字段里**。date 字段只能是纯日期格式（YYYY.M.D 或 近日）。
-- **机构名称强制**：素材中已有的机构名称必须原样使用，不得改动。"长三角国家技术创新中心"绝不能简写为"长三角国创中心"，必须使用全称。
-- **万亿城市约束**：只选取来自29座GDP万亿城市或省级/国家级层面的素材，池州等中小城市素材跳过不选。
-- 如果某板块素材不足2条，宁可少写，不要编造
-
-═══════════════════════════════════════════════════════════
-四大板块归类规则（必须严格遵循）
-═══════════════════════════════════════════════════════════
-
-【各地科技委动态】—— 省级省委科技委或万亿城市市委科技委的会议、部署、决策
-- ✅ 收录：省委/市委科技委全体会议、科技委工作部署、科技委审议通过的文件
-- ❌ 排除：非科技委的部门会议、党组学习、中小城市科技委
-
-【上海（长三角）国创中心资讯】—— 对接融入上海（长三角）国际科技创新中心的动态
-- ✅ 收录：枢纽节点城市（苏州/无锡/南京/南通/宁波等）融入举措、省级关于长三角科创协同的重要发布、上海重大创新举措/园区/平台动态、跨区域协同机制（G60、沿沪宁产业创新带）
-- ❌ 排除：长三角地区一般性经济新闻、非科创领域的区域合作
-
-【科创政策速览】—— 🔴 必须是万亿城市正式印发的科技创新政策文件
-- ✅ 收录：有明确文件名（用《》括起来）的正式政策文件——行动方案、行动计划、管理办法、实施意见、若干措施、试点办法、补贴/专项资金管理办法
-- ❌ 严格排除以下类型（归入本板块即视为错误）：
-  · 会议/论坛/活动新闻（如"某某大会在某地举办"）→ 政策板块不放活动
-  · 领导调研/考察/走访/座谈会 → 调研不是政策
-  · 常州本地新闻 → 常州信息应放在洞察中作为对标参考，不应作为本板块"外部政策"出现
-  · 缺乏正式文件名的泛泛报道（无《》不收录）
-- 📋 输出格式：title 必须包含政策文件名（《》），summary 首句格式为"X月X日，XX市印发《XX方案》，......"
-
-【改革举措】—— 万亿城市科技体制改革/科技成果转化/科技金融创新/新型研发机构
-- ✅ 收录：科技体制改革措施、科技成果转化机制（先投后股/赋权改革）、科技金融工具（科技保险/投贷联动）、新型研发机构改革、校地协同创新
-- ❌ 排除：发改委一般事务（课题选聘/价格调整/工作推进会）、非科技领域改革
-
-═══════════════════════════════════════════════════════════
-创新洞察撰写规范（每条120-160字，核心：常州如何差异化突围）
-═══════════════════════════════════════════════════════════
-
-## 战略定位框架（每条洞察必须体现以下视角）：
-常州是长三角27座万亿城市之一，正在建设"长三角产业科技创新中心"。当前重点布局五大未来产业赛道：
-- **AIDC（人工智能数据中心）**：算力基础设施，构建"算力+硬件+场景+生态"AI产业链创新链
-- **具身智能**：人形机器人、协作机器人、智能体，重点在核心零部件（力触觉传感器、灵巧手）
-- **未来存储**：新型存储技术、存算一体芯片、磁光电融合存储
-- **未来能源**：氢能、新型储能、钙钛矿、虚拟电厂
-- **液冷技术**：浸没式冷却、液冷散热方案，配套算力中心建设
-
-## 每条洞察必须同时满足以下6个维度（缺一不可）：
-★1. **产业赛道锚定**：明确本条关联五大产业中哪1-2个，点出具体技术/产品方向（不要空说"未来能源"，要写"钙钛矿中试线"或"氢能储运装备"）
-★2. **产业基础嫁接**：点出常州现有优势产业/企业（新能源：天合光能、中创新航、蜂巢能源、理想汽车、比亚迪常州；高端装备：恒立液压、安川机器人、纳博特斯克），说清如何嫁接
-★3. **万亿城市对标**（必须对比至少2个城市）：明确写出常州vs苏州/无锡/南京/南通的具体差异——苏州强在XX，无锡深耕XX，南京依托XX，南通发力XX，因此常州应差异化走XX路线。最终落脚到常州如何在29座万亿之城中建立不可替代地位
-★4. **产业园区承载**：点出常州具体承载园区（科教城、常州高新区、武进高新区、西太湖科技产业园、常州经开区、溧阳高新区、金坛华罗庚高新区、中以常州创新园），说明应在哪个园区布局什么
-★5. **政策工具扣合**：对接常州政策抓手——三名工程（名园名院名企）、双高协同（高校+高新园区）、龙城金谷（科技金融）、科技创新政策（创新券、研发费用补贴、人才引进）
-★6. **行动建议+牵头部门**：给出1-2句可执行建议，指明牵头部门（市科技局/市工信局/市发改委/市市场监管局/市金融监管局/市大数据局/市人才办/科教城管委会等）
-
-## 企业调研关注点（涉及企业时必须考虑以下真实痛点）：
-- 卡脖子技术瓶颈（产业链短板在哪）
-- 人才缺口（缺什么类型人才，数量级）
-- 融资需求（天使/VC/产业基金缺口）
-- 园区配套（中试场地、检测认证、算力券等）
-- 链主企业带动效应、专精特新企业培育
-
-## 禁止事项：
-禁止：空话套话（"值得借鉴""有参考价值""有借鉴意义""值得关注""值得学习""应该加强""应该重视""进一步加大""不断深化""大力推进""意义重大""影响深远"等绝对禁止）
-禁止：啰嗦冗长、空洞无物、不点具体企业/园区/部门名称
-禁止：使用"长三角国创中心"简称——必须写全称"长三角国家技术创新中心"
-
-### 以下是本周从权威网站采集的真实素材
-
-{crawled_context}
-
-### 请以 JSON 格式输出（只输出 JSON，不要其他文字）：
-
-```json
-{{
-  "weekly_overview": "200-250字本周综述",
-  "sections": [
-    {{
-      "name": "各地科技委动态",
-      "items": [
-        {{
-          "title": "标题",
-          "date": "YYYY.M.D（🔴只能填正文事件实际发生日期，严禁填网页发布日期。素材中区分'事件日期'与'网页发布'，只取事件日期。事件日期缺失填'近日'）",
-          "summary": "80-120字摘要（仅基于原文事实）",
-          "insight": "120-160字创新洞察（严格遵循6维度规范）",
-          "source": "来源机构",
-          "url": "🔴必填！从素材中复制原文URL，不得为空、不得编造、不得省略"
-        }}
-      ]
-    }}
-  ],
-  "trend_analysis": "200-300字趋势分析"
-}}
-```
-
-记住：基于真实素材，不要编造。只输出 JSON。"""
-
-    response = client.chat.completions.create(
-        model="deepseek-v4-pro",
-        messages=[{"role": "user", "content": curation_prompt}],
-        max_tokens=16000, temperature=0.1,
-    )
-
-    text = response.choices[0].message.content or ""
-    json_str = text.strip()
-    if json_str.startswith("```"):
-        lines = json_str.split("\n")
-        lines = [l for l in lines if not l.startswith("```")]
-        json_str = "\n".join(lines).strip()
-    data = json.loads(json_str)
-    # URL 安全网：从爬虫素材回填缺失的 URL
-    _restore_urls_from_crawled(data, crawled)
-    return data
+    """返回周报示例数据。使用 --from-json 模式提供真实数据。"""
+    return _sample_data()
 
 
 def _restore_urls_from_crawled(data: dict, crawled: dict):
@@ -796,206 +608,8 @@ def _fuzzy_match_title(title: str, url_index: dict) -> str | None:
 
 
 def get_daily_data(api_key: str = None, sample: bool = False) -> dict:
-    """日报新管线：真实信源采集 → AI 摘要+洞察（3天窗口）"""
-    if sample or not api_key:
-        return _sample_data()
-
-    from datetime import date, timedelta
-    sys.path.insert(0, str(SCRIPT_DIR))
-
-    today = date.today()
-    today_cn = today.strftime("%Y年%m月%d日")
-
-    # ── 阶段1: 真实信源采集 ──
-    print(f"\n{'='*65}")
-    print(f"  阶段1: 真实信源采集（近3天 .gov.cn 等权威网站）")
-    print(f"{'='*65}")
-    from crawler import crawl_all, fetch_supplementary_articles, merge_sources
-    crawled = crawl_all(days_back=3, max_per_source=5)
-
-    # 补充 WebSearch 验证过的文章
-    supplementary_urls = _get_supplementary_urls("daily")
-    if supplementary_urls:
-        print(f"\n  补充采集: 从指定渠道获取 {len(supplementary_urls)} 篇验证文章...")
-        supp_items = fetch_supplementary_articles(supplementary_urls)
-        crawled = merge_sources(crawled, supp_items)
-
-    context_parts = []
-    total_articles = 0
-    for dim, items in crawled.items():
-        context_parts.append(f"\n### {dim}（共{len(items)}条真实素材）")
-        for i, it in enumerate(items):
-            context_parts.append(
-                f"[{i+1}] 标题: {it.title}\n"
-                f"    🔴事件日期（必须用于报告date字段）: {it.event_date or '未知'}\n"
-                f"    网页发布日期（仅供参考，严禁用作报告date字段）: {it.date_str}\n"
-                f"    来源: {it.source} ({it.domain}, 评分{it.score})\n"
-                f"    链接: {it.url}\n"
-                f"    摘要: {it.summary[:150]}"
-            )
-            total_articles += 1
-
-    if total_articles < 3:
-        print(f"[警告] 仅采集到 {total_articles} 条真实素材，不足生成日报。使用示例数据。")
-        return _sample_data()
-
-    # ── 爬虫后过滤：移除不相关内容 ──
-    _filter_crawled_irrelevant(crawled)
-
-    # 缓存原始采集素材供事实核查使用
-    crawled_for_cache = {}
-    for dim, items in crawled.items():
-        crawled_for_cache[dim] = [it.to_dict() for it in items]
-    cache_file = CACHE_DIR / "crawled_sources_daily.json"
-    cache_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(cache_file, "w", encoding="utf-8") as f:
-        json.dump(crawled_for_cache, f, ensure_ascii=False, indent=2)
-
-    crawled_context = "\n".join(context_parts)
-
-    # ── 阶段2: AI 基于真实素材进行摘要和洞察 ──
-    print(f"\n{'='*65}")
-    print(f"  阶段2: AI 基于 {total_articles} 条真实素材生成日报摘要+洞察")
-    print(f"{'='*65}")
-
-    from openai import OpenAI
-    client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
-
-    curation_prompt = f"""你是常州科技创新情报分析师，专责为常州市委市政府提供决策参考。以下是从 .gov.cn 等权威网站真实采集的近3天最新信息。
-
-请基于这些**真实素材**完成以下工作：
-1. 从素材中筛选最有价值的8-12条信息，严格归入以下4个板块（板块名称不可更改）
-2. 为每条信息撰写80-120字摘要（基于原文事实，不得编造原文没有的数据）
-3. 为每条信息撰写120-160字创新洞察（精炼简洁，直击要点）
-
-═══════════════════════════════════════════════════════════
-⛔ 第一优先级：筛选阶段质量关卡（素材→入选，逐条过）
-═══════════════════════════════════════════════════════════
-
-## 信源权威性评分（素材中标注了score字段，优先选高分）
-- 100分（.gov.cn 政务官网）→ 每板块至少1条
-- 85分（中科院/工程院/科技日报）→ 每板块至少2条来自≥85分
-- 70分（省级党媒、权威行业媒体）
-- 60分（知名智库、头部科技媒体）
-- 低于60分 → 直接丢弃
-
-## 维度定义（严格归类，不放错板块）
-
-### 维度1 · 各地科技委动态（2-3条）
-**什么是**：先进城市（省级或万亿城市）科技委会议、部署、决策。江苏省委科技委会议必跟。
-**不是什么**：非科技委的部门会议、党组学习、中小城市科技委一律不取。
-
-### 维度2 · 上海（长三角）国创中心资讯（2-3条）
-**什么是**：对接融入上海（长三角）国际科技创新中心的动态——枢纽节点城市（苏州/无锡/南京/南通/宁波等）做了什么、省级重要举措、上海重大创新举措/重点园区/平台动态、跨区域协同机制、长三角联合发文。
-**不是什么**：长三角地区一般性经济新闻、非科创领域的区域合作。
-
-### 维度3 · 科创政策速览（2-3条）
-🔴 **硬约束：必须是万亿城市的正式科技创新政策文件，有明确文件名（用《》括起来）。**
-**什么是**：29座GDP万亿城市正式印发的创新政策——行动方案、行动计划、管理办法、实施意见、若干措施、试点办法、专项资金/补贴政策。
-**不是什么（以下类型严格排除）**：
-- ❌ 会议/论坛/活动新闻（如"某某大会在某地举办"）
-- ❌ 领导调研/考察/走访/座谈会
-- ❌ 常州本地新闻
-- ❌ 非科技领域政策（教育/医疗/文旅/房地产）
-- ❌ 缺乏正式文件名的泛泛报道（没有《》的不入选）
-
-### 维度4 · 改革举措（2-3条）
-**什么是**：万亿城市科技体制改革、科技成果转化机制创新、科技金融工具、新型研发机构、校地协同等。
-**不是什么**：发改委一般事务（课题选聘/价格调整/工作推进会）、非科技领域改革。
-
-## 单信源标注
-仅1条素材支撑的信息须在摘要末尾标注「（单信源，待进一步确认）」
-
-═══════════════════════════════════════════════════════════
-⛔ 关键约束
-═══════════════════════════════════════════════════════════
-- **只能使用素材中提供的信息**，不得编造素材中不存在的会议、政策、数据
-- **时效性强制要求**：素材标注的事件日期必须在近3天内，超出范围或日期不明确的素材直接丢弃不用
-- **日期使用规则**：素材中标注了"事件日期"和"网页发布"两个日期，你必须使用**事件日期**（格式YYYY.M.D，如2026.6.30）。如果事件日期为空，则以网页发布日期为准。date 字段只能是纯日期格式（YYYY.M.D 或 近日）。
-- **机构名称强制**："科技委"≠"科委"，全称"中国共产党XX省/市委科技委员会"。"长三角国家技术创新中心"绝不能简写为"长三角国创中心"。"G60科创走廊"非"G60科技走廊"、"沿沪宁产业创新带"非"沿沪宁创新走廊"。
-- **数据精度**：金额、百分比必须与原文逐位一致，不得四舍五入。未搜到具体数据宁写"加快推进"不虚构数字。
-- 如果某板块素材不足，宁可少写，不要编造
-- 每板块2-3条，总计8-12条
-
-═══════════════════════════════════════════════════════════
-创新洞察撰写规范（每条120-160字，核心：常州如何差异化突围）
-═══════════════════════════════════════════════════════════
-
-## 战略定位：常州是长三角29座万亿城市之一，正在建设"长三角产业科技创新中心"。重点布局五大未来产业：
-- AIDC（算力基础设施，构建"算力+硬件+场景+生态"AI产业链创新链）
-- 具身智能（力触觉传感器、灵巧手、协作机器人等核心零部件）
-- 未来存储（新型存储技术、存算一体芯片）
-- 未来能源（氢能、新型储能、钙钛矿、虚拟电厂）
-- 液冷技术（浸没式冷却、液冷散热方案）
-
-## 每条洞察必须同时满足6个维度（★必选）：
-★1. **产业赛道锚定**：明确关联五大产业中哪1-2个，点出具体技术/产品方向
-★2. **产业基础嫁接**：点出常州企业（天合光能、中创新航、蜂巢能源、理想汽车、比亚迪常州、恒立液压等）
-★3. **万亿城市对标**（至少2城）：苏州强在XX，无锡深耕XX → 常州差异化走XX路线
-★4. **产业园区承载**：点出具体园区（科教城、常州高新区、武进高新区、西太湖科技产业园、中以常州创新园等）
-★5. **政策工具扣合**：对接三名工程（名园名院名企）、双高协同（高校+高新园区）、龙城金谷（科技金融）
-★6. **行动建议+牵头部门**：1-2句可执行建议（市科技局/市工信局/市发改委/市市场监管局/市金融监管局/市大数据局/市人才办/科教城管委会等）
-
-## 企业调研关注点（涉及企业时须考虑真实痛点）：
-卡脖子技术瓶颈、产业链短板、人才缺口、融资需求、园区配套（中试场地、检测认证、算力券）、链主企业带动、专精特新培育
-
-## 严禁：
-空话套话（"值得借鉴""有参考价值""值得关注"等绝对禁止）
-脱离常州实际的泛泛建议、照搬原文不做本地化转化
-使用"长三角国创中心"简称——必须写全称"长三角国家技术创新中心"
-
-═══════════════════════════════════════════════════════════
-输出前逐条自检（7项全通过才输出）
-═══════════════════════════════════════════════════════════
-□ 1. 机构名称准确？（科技委≠科委！长三角国家技术创新中心≠长三角国创中心！）
-□ 2. 日期与原文逐字一致？
-□ 3. 金额/百分比与原文逐位一致？
-□ 4. 科创政策速览每条都有《》文件名？
-□ 5. 科创政策速览不含论坛/活动/调研/常州本地新闻？
-□ 6. 每条洞察有关联五大产业+对比至少2个周边城市？
-□ 7. URL不为空、不编造？
-
-### 以下是近3天从权威网站采集的真实素材
-
-{crawled_context}
-
-### 请以 JSON 格式输出（只输出 JSON，不要其他文字）：
-
-```json
-{{
-  "sections": [
-    {{
-      "name": "各地科技委动态",
-      "items": [
-        {{
-          "title": "标题（含完整机构名和政策文件名《》）",
-          "date": "YYYY.M.D（🔴只能填正文事件实际发生日期，严禁填网页发布日期。素材中区分'事件日期'与'网页发布'，只取事件日期。事件日期缺失填'近日'）",
-          "summary": "80-120字摘要（仅基于原文事实）",
-          "insight": "120-160字创新洞察（严格遵循6维度规范）",
-          "source": "来源机构名称（全称）",
-          "url": "🔴必填！从素材中复制原文URL，不得为空、不得编造、不得省略"
-        }}
-      ]
-    }}
-  ]
-}}
-```
-
-记住：基于真实素材，不要编造。逐条通过7项自检。只输出 JSON。"""
-
-    response = client.chat.completions.create(
-        model="deepseek-v4-pro",
-        messages=[{"role": "user", "content": curation_prompt}],
-        max_tokens=12000, temperature=0.1,
-    )
-
-    text = response.choices[0].message.content or ""
-    json_str = text.strip()
-    if json_str.startswith("```"):
-        lines = json_str.split("\n")
-        lines = [l for l in lines if not l.startswith("```")]
-        json_str = "\n".join(lines).strip()
-    return json.loads(json_str)
+    """返回日报示例数据。使用 --from-json 模式提供真实数据。"""
+    return _sample_data()
 
 
 def _sample_data() -> dict:
@@ -1595,51 +1209,47 @@ MONTHLY_SYSTEM_PROMPT = """你是一位资深科技创新情报分析师，服�
 5. **液冷技术**：数据中心液冷、浸没式冷却
 
 ═══════════════════════════════════════════════════════════
-创新洞察深度要求（每条80-150字，精炼简洁、直击要点，★为必选项）
+创新洞察撰写规范（每条出3版，方案A/B/C各120-160字）
 ═══════════════════════════════════════════════════════════
 
-★ 1. **对标五大产业方向**：关联AIDC/具身智能/未来存储/未来能源/液冷至少一个
-★ 2. **嫁接常州产业基础**：结合新能源（比亚迪/理想/中创新航/蜂巢能源）、高端装备、新能源汽车等
-★ 3. **竞争态势分析**：对比苏州/无锡/南京/南通中至少2个城市，指出差异化空间
-4. **29座万亿之城定位**：分析常州"新能源之都"+"国际化智造名城"的独特定位
-★ 5. **扣合政策抓手**：关联三名工程（本地园区/名院/名企）、双高协同（高新区+高水平大学），不强制特定园区
-★ 6. **对接经济工作会议精神和企业调研关注点**：结合常州市委市政府经济工作会议部署的重点任务、市领导调研企业时关注的痛点（技术卡脖子/产业链短板/人才缺口/融资需求等）
-7. **全链条视角**："算力+硬件+场景+生态"分析常州卡位点
-8. **可操作建议**（精简，1-2句）：给出牵头部门+对接资源
+每条信息必须从3个不同角度撰写洞察：
+- **方案A · 行动建议型**：以"建议常州......"开篇，给出可操作建议（牵头部门+对接资源），扣合三名工程/双高协同/中以常州创新园/科教城。
+- **方案B · 竞争策略型**：点名苏州/无锡/南京/南通中至少2个城市同类布局，分析常州差异化空间和竞争紧迫性。
+- **方案C · 前瞻布局型**：着眼3-5年产业趋势，指出常州应提前布局的技术/人才/基础设施，关联五大产业未来演进。
 
-### 严禁出现：
-- "值得借鉴""有参考价值""值得关注"等空话套话
-- 脱离常州实际的泛泛建议
-- 照搬原文不做本地化转化的分析
-- 数字/政策名称与原文不符
-- 篇幅冗长，超过150字
+每版必须包含：①五大产业关联 ②常州企业嫁接 ③政策工具扣合 ④可操作建议（方案A必含牵头部门）。
+
+严禁空话套话、三版雷同、脱离常州实际。
+
+## 科创政策速览特殊要求
+每条政策：title含《政策名称》，summary首句"X月X日，XX市印发《XX方案》，......"，有具体日期。无《》不收录。
 
 ## 输出格式
 
 ```json
 {
-  "monthly_overview": "250-350字本月综述，梳理核心主线和重大变化，结合常州五大产业方向和竞争格局点明启示。必须覆盖AIDC/具身智能/未来能源等关键赛道的月度动态。",
+  "monthly_overview": "250-350字本月综述",
   "sections": [
     {
       "name": "各地科技委动态",
       "items": [
         {
-          "title": "信息标题（机构全称准确）",
-          "date": "2026.7.X（🔴只能填正文事件实际发生日期，严禁填网页发布日期）",
-          "summary": "100-150字，包含具体政策名称/金额/时间/主体。信源标注：多源验证写'据XX官方发布'",
-          "insight": "80-150字（精炼简洁）。必须包含：①五大产业方向关联 ②常州产业基础嫁接点 ③至少2个周边城市竞争对比 ④政策抓手 ⑤经济工作会议精神/企业调研关注点 ⑥可操作建议+牵头部门",
-          "source": "来源机构名称（全称）",
+          "title": "标题（政策板块必须含《政策名称》）",
+          "date": "YYYY.M.D（事件实际发生日期）",
+          "summary": "100-150字。政策板块首句：'X月X日，XX市印发《XX方案》，......'",
+          "insight": ["方案A：行动建议型......", "方案B：竞争策略型......", "方案C：前瞻布局型......"],
+          "source": "来源机构全称",
           "url": "原文URL"
         }
       ]
     }
   ],
-  "trend_analysis": "250-350字月度趋势分析，归纳2-3条跨板块深层趋势。必须分析常州在苏州/无锡/南京/南通竞争中的差异化空间和29座万亿之城中的定位。",
+  "trend_analysis": "250-350字月度趋势分析",
   "strategic_recommendations": ["建议1（可操作+责任部门+政策抓手）", "建议2", "建议3", "建议4", "建议5"]
 }
 ```
 
-记住：只输出 JSON。输出前必须逐条通过第6层自检清单的7项检查。"""
+记住：只输出 JSON。输出前逐条自检。"""
 
 MONTHLY_USER_PROMPT_TEMPLATE = """今天是{today_cn}。请联网搜索本月（{month_start}至{month_end}）科技创新领域重要动态，生成《创新常州·对标快讯》月报。
 
@@ -1750,174 +1360,8 @@ MONTHLY_USER_PROMPT_TEMPLATE = """今天是{today_cn}。请联网搜索本月（
 
 
 def get_monthly_data(api_key: str = None, sample: bool = False) -> dict:
-    """月报新管线：真实信源采集 → AI 摘要+洞察（30天窗口）"""
-    if sample or not api_key:
-        return _monthly_sample_data()
-
-    from datetime import date, timedelta
-    sys.path.insert(0, str(SCRIPT_DIR))
-
-    today = date.today()
-    today_cn = today.strftime("%Y年%m月%d日")
-    month_start_cn = today.replace(day=1).strftime("%Y年%m月%d日")
-    month_end_cn = today.strftime("%Y年%m月%d日")
-
-    # ── 阶段1: 真实信源采集（30天窗口）──
-    print(f"\n{'='*65}")
-    print(f"  阶段1: 真实信源采集（近30天）")
-    print(f"{'='*65}")
-    from crawler import crawl_all, fetch_supplementary_articles, merge_sources
-    crawled = crawl_all(days_back=30, max_per_source=12)
-
-    # 补充 WebSearch 验证过的文章
-    supplementary_urls = _get_supplementary_urls("monthly")
-    if supplementary_urls:
-        print(f"\n  补充采集: 从指定渠道获取 {len(supplementary_urls)} 篇验证文章...")
-        supp_items = fetch_supplementary_articles(supplementary_urls)
-        crawled = merge_sources(crawled, supp_items)
-
-    context_parts = []
-    total_articles = 0
-    for dim, items in crawled.items():
-        context_parts.append(f"\n### {dim}（共{len(items)}条真实素材）")
-        for i, it in enumerate(items):
-            context_parts.append(
-                f"[{i+1}] 标题: {it.title}\n"
-                f"    🔴事件日期（必须用于报告date字段）: {it.event_date or '未知'}\n"
-                f"    网页发布日期（仅供参考，严禁用作报告date字段）: {it.date_str}\n"
-                f"    来源: {it.source} ({it.domain}, 评分{it.score})\n"
-                f"    链接: {it.url}\n"
-                f"    摘要: {it.summary[:150]}"
-            )
-            total_articles += 1
-
-    if total_articles < 4:
-        print(f"[警告] 仅采集到 {total_articles} 条真实素材，使用示例数据。")
-        return _monthly_sample_data()
-
-    # 缓存原始采集素材
-    crawled_for_cache = {}
-    for dim, items in crawled.items():
-        crawled_for_cache[dim] = [it.to_dict() for it in items]
-    cache_file = CACHE_DIR / "crawled_sources_monthly.json"
-    cache_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(cache_file, "w", encoding="utf-8") as f:
-        json.dump(crawled_for_cache, f, ensure_ascii=False, indent=2)
-
-    crawled_context = "\n".join(context_parts)
-
-    # ── 阶段2: AI 基于真实素材生成月报 ──
-    print(f"\n{'='*65}")
-    print(f"  阶段2: AI 基于 {total_articles} 条真实素材生成月报")
-    print(f"{'='*65}")
-
-    from openai import OpenAI
-    client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
-
-    curation_prompt = f"""你是常州科技创新情报分析师，专责为常州市委市政府提供决策参考。以下是从 .gov.cn 等权威网站真实采集的本月最新信息。
-
-请基于这些**真实素材**完成以下工作：
-1. 从素材中筛选最有价值的12-16条信息，严格归入以下4个板块：
-   - 各地科技委动态
-   - 上海（长三角）国创中心资讯
-   - 科创政策速览
-   - 改革举措
-2. 为每条信息撰写100-150字摘要（基于原文事实）
-3. 为每条信息撰写120-160字创新洞察（精炼简洁，直击要点，下文有详细要求）
-4. 撰写250-350字本月综述和250-350字趋势分析
-5. 提出5条战略建议
-
-⛔ 只能使用素材中的信息，不得编造。
-- **时效性强制要求**：素材标注的事件日期必须在本月内（{month_start_cn}至{month_end_cn}），超出范围或日期不明确的素材直接丢弃不用
-- **日期使用规则**：素材中标注了"事件日期"和"网页发布"两个日期，你必须使用**事件日期**（格式YYYY.M.D，如2026.6.30）。如果事件日期为空，则以网页发布日期为准。summary 中如需标注信源报道日期，写在摘要正文末尾，**绝对不要写在 date 字段里**。date 字段只能是纯日期格式（YYYY.M.D 或 近日）。
-- **机构名称强制**：素材中已有的机构名称必须原样使用，不得改动。"长三角国家技术创新中心"绝不能简写为"长三角国创中心"，必须使用全称。
-
-═══════════════════════════════════════════════════════════
-四大板块归类规则（必须严格遵循，归错板块比漏归更糟）
-═══════════════════════════════════════════════════════════
-
-【各地科技委动态】—— 省级省委科技委或万亿城市市委科技委的会议、部署、决策
-- ✅ 收录：省委/市委科技委全体会议、科技委工作部署、科技委审议通过的文件
-- ❌ 排除：非科技委的部门会议、党组学习、中小城市科技委
-
-【上海（长三角）国创中心资讯】—— 对接融入上海（长三角）国际科技创新中心的动态
-- ✅ 收录：枢纽节点城市融入举措、省级关于长三角科创协同的重要发布、上海重大创新举措/园区/平台动态、跨区域协同机制（G60、沿沪宁产业创新带）
-
-【科创政策速览】—— 🔴 必须是万亿城市正式印发的科技创新政策文件，有明确文件名（用《》括起来）
-- ✅ 收录：行动方案、行动计划、管理办法、实施意见、若干措施、试点办法、专项资金/补贴政策
-- ❌ 严格排除：会议/论坛/活动新闻、领导调研/考察/走访、常州本地新闻、缺乏文件名的泛泛报道
-- 📋 title 必须包含政策文件名（《》），summary 首句格式为"X月X日，XX市印发《XX方案》，......"
-
-【改革举措】—— 万亿城市科技体制改革/科技成果转化/科技金融创新/新型研发机构
-- ✅ 收录：科技体制改革、科技成果转化机制、科技金融工具、新型研发机构改革、校地协同
-- ❌ 排除：发改委一般事务（课题选聘/价格调整）、非科技领域改革
-
-═══════════════════════════════════════════════════════════
-创新洞察撰写规范（每条120-160字，核心：常州如何差异化突围）
-═══════════════════════════════════════════════════════════
-
-## 战略定位：常州是长三角万亿城市之一，正在建设"长三角产业科技创新中心"。重点布局五大未来产业：
-- AIDC（算力基础设施，构建"算力+硬件+场景+生态"AI产业链创新链）
-- 具身智能（力触觉传感器、灵巧手、协作机器人等核心零部件）
-- 未来存储（新型存储技术、存算一体芯片）
-- 未来能源（氢能、新型储能、钙钛矿、虚拟电厂）
-- 液冷技术（浸没式冷却、液冷散热方案）
-
-## 每条洞察必须同时满足6个维度：
-★1. **产业赛道锚定**：明确关联五大产业中哪1-2个，点出具体技术/产品方向
-★2. **产业基础嫁接**：点出常州企业（天合光能、中创新航、蜂巢能源、理想汽车、比亚迪常州、恒立液压等），说清如何嫁接
-★3. **万亿城市对标**（至少2城）：苏州强XX/无锡深耕XX/南京依托XX/南通发力XX → 常州应差异化走XX路线，在29座万亿之城中建立不可替代地位
-★4. **产业园区承载**：点出具体园区（科教城、常州高新区、武进高新区、西太湖科技产业园、常州经开区、中以常州创新园等），说明在哪个园区布局什么
-★5. **政策工具扣合**：对接三名工程（名园名院名企）、双高协同（高校+高新园区）、龙城金谷（科技金融）、科技创新政策
-★6. **行动建议+牵头部门**：可执行建议+牵头部门
-
-## 企业调研关注点：卡脖子技术瓶颈、产业链短板、人才缺口、融资需求、园区配套、链主带动、专精特新培育
-
-## 禁止：
-空话套话（"值得借鉴""有参考价值""有借鉴意义""值得关注""值得学习""应该加强""进一步加大""大力推进"等绝对禁止）
-使用"长三角国创中心"简称——必须写全称"长三角国家技术创新中心"
-
-### 真实素材
-{crawled_context}
-
-### 输出 JSON（只输出 JSON）：
-```json
-{{
-  "monthly_overview": "250-350字本月综述",
-  "sections": [
-    {{
-      "name": "各地科技委动态",
-      "items": [
-        {{
-          "title": "标题",
-          "date": "YYYY.M.D（必填，优先使用事件日期；若无则用网页发布日期并注明'据XX网站X月X日报道'；素材无日期填'近日'）",
-          "summary": "100-150字摘要",
-          "insight": "120-160字创新洞察（严格遵循6维度规范）",
-          "source": "来源机构",
-          "url": "🔴必填！从素材中复制原文URL，不得为空、不得编造、不得省略"
-        }}
-      ]
-    }}
-  ],
-  "trend_analysis": "250-350字趋势分析",
-  "strategic_recommendations": ["建议1", "建议2", "建议3", "建议4", "建议5"]
-}}
-```
-只输出 JSON。"""
-
-    response = client.chat.completions.create(
-        model="deepseek-v4-pro",
-        messages=[{"role": "user", "content": curation_prompt}],
-        max_tokens=16000, temperature=0.1,
-    )
-
-    text = response.choices[0].message.content or ""
-    json_str = text.strip()
-    if json_str.startswith("```"):
-        lines = json_str.split("\n")
-        lines = [l for l in lines if not l.startswith("```")]
-        json_str = "\n".join(lines).strip()
-    return json.loads(json_str)
+    """返回月报示例数据。使用 --from-json 模式提供真实数据。"""
+    return _monthly_sample_data()
 
 
 def _monthly_sample_data() -> dict:
@@ -2241,7 +1685,7 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
 </html>"""
 
 
-def generate_monthly(api_key: str = None, output_path: str = None, sample: bool = False):
+def generate_monthly(output_path: str = None, sample: bool = False):
     import sys as _sys
     _sys.path.insert(0, str(PROJECT_DIR))
     _sys.path.insert(0, str(SCRIPT_DIR))
@@ -2250,7 +1694,7 @@ def generate_monthly(api_key: str = None, output_path: str = None, sample: bool 
     date_cn = today.strftime("%Y年%m月%d日")
     date_fn = today.strftime("%Y%m")
 
-    from generate_docx import get_issue_numbers
+    # get_issue_numbers 已在本模块顶部定义
     try:
         issue, total = get_issue_numbers()
         if issue <= 0: issue, total = 1, 1
@@ -2258,28 +1702,7 @@ def generate_monthly(api_key: str = None, output_path: str = None, sample: bool 
         issue, total = 1, 1
 
     print("[数据] 正在获取月报内容...")
-    data = get_monthly_data(api_key, sample)
-
-    # ── 后处理校验管道 ──
-    if not sample and api_key:
-        print("\n" + "=" * 65)
-        print("  启动后处理校验管道（月报）")
-        print("=" * 65)
-
-        from validate_report import validate_report, print_validation_report
-        errors, warnings = validate_report(data, "monthly")
-        print_validation_report(errors, warnings)
-
-        if errors:
-            print("\n⚠️  校验发现错误，但仍继续生成 PDF")
-
-        from fact_check import fact_check_against_sources, print_fact_check_report
-        crawled_cache = CACHE_DIR / "crawled_sources_monthly.json"
-        if crawled_cache.exists():
-            with open(crawled_cache, "r", encoding="utf-8") as f:
-                crawled_data = json.load(f)
-            fc_result = fact_check_against_sources(data, crawled_data)
-            print_fact_check_report(fc_result)
+    data = get_monthly_data(sample=sample)
 
     print("\n[HTML] 生成页面...")
     html = build_monthly_html(data, issue, total, date_cn)
@@ -2360,7 +1783,7 @@ def _inject_editorial_content(data: dict, date_cn: str):
 
 # ── 主入口 ────────────────────────────────────────────
 
-def generate(api_key: str = None, output_path: str = None, sample: bool = False):
+def generate(output_path: str = None, sample: bool = False):
     import sys as _sys
     _sys.path.insert(0, str(PROJECT_DIR))
     _sys.path.insert(0, str(SCRIPT_DIR))
@@ -2369,7 +1792,7 @@ def generate(api_key: str = None, output_path: str = None, sample: bool = False)
     date_cn = today.strftime("%Y年%m月%d日")
     date_fn = today.strftime("%Y%m%d")
 
-    from generate_docx import get_issue_numbers
+    # get_issue_numbers 已在本模块顶部定义
     try:
         issue, total = get_issue_numbers()
         if issue <= 0: issue, total = 1, 1
@@ -2377,38 +1800,10 @@ def generate(api_key: str = None, output_path: str = None, sample: bool = False)
         issue, total = 1, 1
 
     print("[数据] 正在获取周报内容...")
-    data = get_weekly_data(api_key, sample)
+    data = get_weekly_data(sample=sample)
 
     # ── 注入编辑定稿内容（本周综述/趋势分析 + 长三角预写条目）──
     _inject_editorial_content(data, date_cn)
-
-    # ── 后处理校验管道 ──
-    if not sample and api_key:
-        print("\n" + "=" * 65)
-        print("  启动后处理校验管道")
-        print("=" * 65)
-
-        # 第1层：正则后处理校验
-        from validate_report import validate_report, print_validation_report
-        errors, warnings = validate_report(data, "weekly")
-        print_validation_report(errors, warnings)
-
-        if errors:
-            print("\n⚠️  校验发现严重错误，但仍继续生成 PDF（错误已标记在日志中）")
-
-        # 第2层：事实核查（基于采集素材比对，不再依赖联网搜索）
-        from fact_check import fact_check_against_sources, print_fact_check_report
-        # 从缓存加载原始采集素材
-        crawled_cache = CACHE_DIR / "crawled_sources.json"
-        if crawled_cache.exists():
-            with open(crawled_cache, "r", encoding="utf-8") as f:
-                crawled_data = json.load(f)
-            fc_result = fact_check_against_sources(data, crawled_data)
-            fc_passed = print_fact_check_report(fc_result)
-            if not fc_passed:
-                print("\n⚠️  事实核查发现疑点，请人工复核")
-        else:
-            print("\n  ⚠️  无采集素材缓存，跳过事实核查")
 
     print("\n[HTML] 生成页面...")
     html = build_html(data, issue, total, date_cn)
@@ -2439,18 +1834,7 @@ if __name__ == "__main__":
     parser.add_argument("--monthly", action="store_true", help="生成月报（默认生成周报）")
     args = parser.parse_args()
 
-    api_key = os.environ.get("DEEPSEEK_API_KEY", "")
-    if not api_key and not args.sample:
-        try:
-            _sys = __import__("sys"); _sys.path.insert(0, str(PROJECT_DIR))
-            from run_daily import load_config
-            api_key = load_config().get("deepseek_api_key", "")
-        except: pass
-    if not api_key and not args.sample:
-        print("[提示] 无 API Key，使用示例数据"); args.sample = True
-
-    key = api_key if not args.sample else None
     if args.monthly:
-        generate_monthly(api_key=key, output_path=args.output, sample=args.sample)
+        generate_monthly(output_path=args.output, sample=args.sample)
     else:
-        generate(api_key=key, output_path=args.output, sample=args.sample)
+        generate(output_path=args.output, sample=args.sample)

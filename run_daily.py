@@ -1,21 +1,16 @@
 #!/usr/bin/env python3
 """
-《创新常州·对标快讯》日报全自动流水线
-真实信源采集 → AI 摘要+洞察 → HTML → PDF → 去重 → 分发
-
-新管线：不再使用 AI 联网搜索（存在编造风险），改为：
-  1. crawler.py 从 .gov.cn 等权威网站真实采集近3天信息
-  2. AI 基于真实素材进行摘要和洞察（不联网，不编造）
-  3. 双层校验（validate_report + fact_check）
+《创新常州·对标快讯》日报自动生成
+JSON 数据 → HTML → PDF → 分发
 
 用法:
-    python3 run_daily.py                          # 生成今日日报
-    python3 run_daily.py --dry-run                # 仅采集分析，不生成文件不分发
-    python3 run_daily.py --skip-distribute        # 跳过邮件/飞书/桌面分发
+    python3 run_daily.py --from-json daily/report_data_xxx.json  # 从 JSON 生成 PDF
+    python3 run_daily.py --collect                                 # 输出 JSON 模板
+    python3 run_daily.py --sample                                  # 使用示例数据预览
+    python3 run_daily.py --skip-distribute                         # 不分发
 """
 
 import sys
-import os
 import json
 import argparse
 from pathlib import Path
@@ -95,14 +90,6 @@ def _clean_val(raw_val: str) -> str:
     return v
 
 
-def get_api_key(config: dict) -> str:
-    """从环境变量或配置文件获取 DeepSeek API Key"""
-    key = os.environ.get("DEEPSEEK_API_KEY", "")
-    if key:
-        return key
-    return config.get("deepseek_api_key", "")
-
-
 # ---------------------------------------------------------------------------
 # 去重
 # ---------------------------------------------------------------------------
@@ -165,118 +152,141 @@ def main():
     parser.add_argument("--skip-distribute", action="store_true", help="不分发")
     parser.add_argument("--force", action="store_true", help="强制生成，跳过周末/重复检测")
     parser.add_argument("--sample", action="store_true", help="使用示例数据")
+    parser.add_argument("--collect", action="store_true",
+                        help="仅采集信源+输出搜索简报（供 Claude Code 搜索+写作）")
+    parser.add_argument("--from-json", type=str, default="",
+                        help="从预写的报告 JSON 文件生成 HTML/PDF（跳过 AI 调用）")
     args = parser.parse_args()
 
     print("=" * 60)
-    print("  创新常州·对标快讯 — 日报自动生成流水线（新管线）")
+    print("  创新常州·对标快讯 — 日报自动生成流水线")
     print("=" * 60)
 
     today = datetime.now()
+    today_stem = today.strftime("%Y-%m-%d")
+    daily_dir = PROJECT_DIR / "daily"
 
     # 周末自动跳过
-    if today.weekday() >= 5 and not args.force:
+    if today.weekday() >= 5 and not args.force and not args.collect:
         print(f"[跳过] 今天是周末，不生成日报。如需强制生成请使用 --force")
         return
 
-    # 今天已生成过则跳过
-    daily_dir = PROJECT_DIR / "daily"
-    today_stem = today.strftime("%Y-%m-%d")
-    today_pdf = daily_dir / f'创新常州·对标快讯_{today_stem}.pdf'
-    if today_pdf.exists() and not args.force:
-        print(f"[跳过] 今日日报已存在: {today_pdf}")
-        return
+    # ── 模式 1: --from-json（从预写 JSON 生成报告）──
+    if args.from_json:
+        from_json_path = Path(args.from_json)
+        if not from_json_path.exists():
+            print(f"[错误] JSON 文件不存在: {from_json_path}")
+            sys.exit(1)
+        with open(from_json_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        sections = data.get("sections", [])
+        if not sections:
+            print("[错误] JSON 中无 sections 数据")
+            sys.exit(1)
+        total_items = sum(len(s.get("items", [])) for s in sections)
+        print(f"[读入] {total_items} 条信息，分布在 {len(sections)} 个板块")
 
-    config = load_config()
-    api_key = get_api_key(config)
-    if not api_key and not args.sample:
-        print("[错误] 未找到 DEEPSEEK_API_KEY。")
-        print("请设置环境变量: export DEEPSEEK_API_KEY='sk-...'")
-        print("或在 config/settings.yaml 中配置 deepseek_api_key")
-        sys.exit(1)
+        # 去重
+        sections = dedup_sections(sections)
+        remaining = sum(len(s.get("items", [])) for s in sections)
+        if remaining == 0:
+            print("[错误] 去重后无剩余条目")
+            sys.exit(1)
+        print(f"[去重后] 剩余 {remaining} 条信息")
+        data["sections"] = sections
 
-    today = datetime.now()
-    today_cn = today.strftime("%Y年%m月%d日")
-
-    # 1. 新管线：真实信源采集 + AI 摘要洞察
-    sys.path.insert(0, str(SCRIPT_DIR))
-    from generate_html_pdf import get_daily_data, build_daily_html, html_to_pdf
-
-    data = get_daily_data(api_key=api_key, sample=args.sample)
-    sections = data.get("sections", [])
-
-    if not sections:
-        print("[错误] 未获取到任何情报数据")
-        sys.exit(1)
-
-    total_items = sum(len(s.get("items", [])) for s in sections)
-    print(f"[结果] 基于真实素材生成 {total_items} 条信息，分布在 {len(sections)} 个板块")
-
-    # 2. 去重
-    sections = dedup_sections(sections)
-    remaining = sum(len(s.get("items", [])) for s in sections)
-    if remaining == 0:
-        print("[错误] 去重后无剩余条目，今日可能已生成过日报")
-        sys.exit(1)
-    print(f"[去重后] 剩余 {remaining} 条信息")
-
-    if args.dry_run:
-        print("\n[Dry-run] 预览内容:")
-        for section in sections:
-            print(f"\n  【{section['name']}】")
-            for item in section.get("items", []):
-                print(f"    ► {item.get('title', '')} ({item.get('date', '')})")
-                print(f"      来源: {item.get('source', '')}")
-                print(f"      URL: {item.get('url', '')}")
-        return
-
-    # ── 后处理校验管道 ──
-    if not args.sample and api_key:
-        print("\n" + "=" * 65)
-        print("  启动后处理校验管道（日报）")
-        print("=" * 65)
-
-        # 第1层：正则后处理校验
+        # 校验
+        config = load_config()
+        sys.path.insert(0, str(SCRIPT_DIR))
         from validate_report import validate_report, print_validation_report
         errors, warnings = validate_report(data, "daily")
         print_validation_report(errors, warnings)
 
-        if errors:
-            print("\n⚠️  校验发现错误，但仍继续生成 PDF（错误已标记在日志中）")
-
-        # 第2层：事实核查（基于采集素材比对）
         from fact_check import fact_check_against_sources, print_fact_check_report
         crawled_cache = CACHE_DIR / "crawled_sources_daily.json"
         if crawled_cache.exists():
             with open(crawled_cache, "r", encoding="utf-8") as f:
                 crawled_data = json.load(f)
             fc_result = fact_check_against_sources(data, crawled_data)
-            fc_passed = print_fact_check_report(fc_result)
-            if not fc_passed:
-                print("\n⚠️  事实核查发现疑点，请人工复核")
-        else:
-            print("\n  ⚠️  无采集素材缓存，跳过事实核查")
+            print_fact_check_report(fc_result)
 
-    # 3. 生成 HTML → PDF
-    from generate_docx import get_issue_numbers
+        # 去重记录
+        mark_dedup(sections)
 
-    issue, total = get_issue_numbers()
-    date_cn = today.strftime("%Y年%m月%d日")
-    html = build_daily_html(data, date_cn, issue, total)
-    pdf_path = html_to_pdf(html, today_pdf)
+        # 检查是否已有今日 PDF
+        today_pdf = daily_dir / f'创新常州·对标快讯_{today_stem}.pdf'
+        if today_pdf.exists() and not args.force:
+            print(f"[跳过] 今日日报已存在: {today_pdf}")
+            return
 
-    # 保存 HTML
-    html_path = daily_dir / f'创新常州·对标快讯_{today_stem}.html'
-    html_path.write_text(html, encoding="utf-8")
+        # 生成 HTML → PDF
+        from generate_html_pdf import build_daily_html, html_to_pdf
+        from generate_html_pdf import get_issue_numbers
+        issue, total = get_issue_numbers()
+        date_cn = today.strftime("%Y年%m月%d日")
+        html = build_daily_html(data, date_cn, issue, total)
+        pdf_path = html_to_pdf(html, today_pdf)
 
-    # 4. 去重记录
-    mark_dedup(sections)
+        html_path = daily_dir / f'创新常州·对标快讯_{today_stem}.html'
+        html_path.write_text(html, encoding="utf-8")
 
-    # 5. 分发
-    if not args.skip_distribute:
-        do_distribute(str(pdf_path))
+        # 分发
+        if not args.skip_distribute:
+            do_distribute(str(pdf_path))
 
-    print(f"\n[完成] 今日日报已生成并分发: {pdf_path}")
-    print("=" * 60)
+        print(f"\n[完成] 今日日报已生成并分发: {pdf_path}")
+        print("=" * 60)
+        return
+
+    # ── 模式 2: --collect（输出 JSON 模板供手动填写）──
+    if args.collect:
+        all_dimensions = ["各地科技委动态", "上海（长三角）国创中心资讯", "科创政策速览", "改革举措"]
+
+        print(f"\n{'='*65}")
+        print(f"  日报 JSON 模板（请填写后使用 --from-json 生成 PDF）")
+        print(f"{'='*65}\n")
+
+        template = {
+            "sections": [
+                {"name": d, "items": [
+                    {"title": "", "date": "", "summary": "", "insight": ["方案A：", "方案B：", "方案C："], "source": "", "url": ""}
+                ]} for d in all_dimensions
+            ]
+        }
+        template_path = daily_dir / "report_data_template.json"
+        template_path.write_text(json.dumps(template, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"[模板] 已写入: {template_path}")
+        print(f"  填写完成后运行: python3 run_daily.py --from-json {template_path}")
+        return
+
+    # ── 模式 3: --sample（使用示例数据快速预览）──
+    if args.sample:
+        sys.path.insert(0, str(SCRIPT_DIR))
+        from generate_html_pdf import build_daily_html, html_to_pdf, get_issue_numbers
+        from generate_html_pdf import _sample_data
+
+        data = _sample_data()
+        sections = data.get("sections", [])
+        total_items = sum(len(s.get("items", [])) for s in sections)
+        print(f"[示例] {total_items} 条示例信息")
+
+        today_pdf = daily_dir / f'创新常州·对标快讯_{today_stem}.pdf'
+        issue, total = get_issue_numbers()
+        date_cn = today.strftime("%Y年%m月%d日")
+        html = build_daily_html(data, date_cn, issue, total)
+        pdf_path = html_to_pdf(html, today_pdf)
+
+        html_path = daily_dir / f'创新常州·对标快讯_{today_stem}.html'
+        html_path.write_text(html, encoding="utf-8")
+
+        print(f"[完成] 示例日报: {pdf_path}")
+        return
+
+    # ── 无参数默认：提示使用方法 ──
+    print("[提示] 请使用以下方式之一：")
+    print(f"  python3 run_daily.py --from-json daily/report_data_YYYYMMDD.json")
+    print(f"  python3 run_daily.py --collect  （输出 JSON 模板）")
+    print(f"  python3 run_daily.py --sample   （使用示例数据快速预览）")
 
 
 if __name__ == "__main__":
