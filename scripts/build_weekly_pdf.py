@@ -122,7 +122,7 @@ def build_weekly_html(data, date_cn, issue_no, total_no):
     color: #fff;
   }}
   .cover-inner {{
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: flex-end; justify-content: space-between;
   }}
   .cover-left h1 {{
     font-size: 14pt; font-weight: 700; letter-spacing: 2px; color: #fff;
@@ -197,11 +197,11 @@ def build_weekly_html(data, date_cn, issue_no, total_no):
     padding: 3px 8px; margin: 2px 0 2px 0;
   }}
   .item-insight p {{
-    font-size: 8pt; color: #6b4f10;
-    line-height: 1.5; display: inline;
+    font-size: 9pt; color: #6b4f10;
+    line-height: 1.55; display: inline;
   }}
   .insight-label {{
-    font-size: 7pt; font-weight: 700; color: var(--accent);
+    font-size: 8pt; font-weight: 700; color: var(--accent);
     letter-spacing: 0.5px; margin-right: 3px;
   }}
 
@@ -247,7 +247,7 @@ def build_weekly_html(data, date_cn, issue_no, total_no):
 <div class="cover">
   <div class="cover-inner">
     <div class="cover-left">
-      <h1>创新常州·对标快讯（周报）</h1>
+      <h1>创新常州·对标快讯</h1>
       <p class="cover-sub">Innovation Changzhou · Weekly</p>
     </div>
     <div class="cover-right">
@@ -258,7 +258,7 @@ def build_weekly_html(data, date_cn, issue_no, total_no):
 </div>
 
 <div class="running-header">
-  <span>创新常州·对标快讯（周报）</span>
+  <span>创新常州·对标快讯</span>
   <span>2026年第{issue_no}期</span>
 </div>
 
