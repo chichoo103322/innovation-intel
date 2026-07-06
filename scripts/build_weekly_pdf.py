@@ -246,7 +246,7 @@ def build_weekly_html(data, date_cn, issue_no, total_no):
   <div class="cover-inner">
     <div class="cover-left">
       <h1>创新常州·对标快讯</h1>
-      <p class="cover-sub">Innovation Changzhou · Weekly</p>
+      <p class="cover-sub">Innovation Changzhou · Benchmarking Weekly</p>
     </div>
     <div class="cover-right">
       <p>2026年 第{issue_no}期 &nbsp;·&nbsp; 总第{total_no}期</p>
