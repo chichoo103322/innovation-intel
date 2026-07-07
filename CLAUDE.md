@@ -5,163 +5,140 @@
 
 ---
 
-## Agent 工作流（触发词 + 自动执行）
+## 优先级体系（逐级递减，不可逾越）
 
-当用户说出以下触发词时，**立即自动执行全部 6 步，不等待、不询问、不确认**：
-
-| 触发词 | 报告类型 | JSON 路径 | 生成命令 |
-|---|---|---|---|
-| `出日报` | 日报 | `daily/report_data_YYYY-MM-DD.json` | `python3 run_daily.py --from-json <json>` |
-| `出周报` | 周报 | `weekly/report_weekly_YYYYMMDD.json` | `python3 scripts/build_weekly_pdf.py` |
-| `出月报` | 月报 | `monthly/report_monthly_YYYYMM.json` | `python3 run_monthly.py --from-json <json>` |
-
-### Step 1: 读取提示词 & 确定参数
-1. 读 `config/{daily|weekly|monthly}_prompt.md`，理解本期的要求
-2. 确定日期范围（日报=当日，周报=本周一至今日，月报=本月1日至今日）
-3. 先去重检查：读 `cache/used_items.json`，排除已用条目
-4. 如已有当日/当周/当月报告文件 → 直接覆盖生成（不询问）
-
-### Step 2: 联网搜索（每维度并行搜索）
-按 `config/settings.yaml` 定义的四大维度，用 `WebSearch` 工具逐维度搜索：
-1. **各地科技委动态** — 搜索"省委科技委 会议""市委科技委 部署"等
-2. **上海（长三角）国创中心资讯** — 搜索"长三角 科创""G60 科创"等
-3. **科创政策速览** — 搜索"科技创新政策 2026""万亿城市 行动计划"等
-4. **改革举措** — 搜索"先投后股""科技金融 改革""成果转化"等
-
-搜索规则：
-- 每维度搜 3-5 次不同关键词，覆盖不同角度
-- 优先使用 `site:gov.cn` 等限定词
-- 对高价值链接用 `WebFetch` 获取全文
-- **第0层过滤**：出现非万亿城市名称 → 立即丢弃该条
-- 每条目标搜到 3-4 条优质条目（.gov.cn 信源优先）
-
-### Step 3: 构建 JSON 数据
-按报告类型对应的 prompt 中定义的 JSON schema，逐条将搜索结果整理为结构化数据。
-
-日报 JSON 结构：
-```json
-{
-  "sections": [
-    {"name": "各地科技委动态", "items": [{"title":"","date":"","summary":"","insight":["方案A：","方案B：","方案C："],"source":"","url":""}]},
-    ...
-  ]
-}
+```
+⛔ Priority 0: 真实性 —— 内容必须可溯源验证，违反则整条废弃
+⛔ Priority 1: 零打扰 —— 全自动执行，不问任何问题
+⛔ Priority 2: 万亿城市白名单 —— 非29座万亿城市一律不取
+⚠️  Priority 3: 格式规范 —— 洞察数量/字数/信源评分等
 ```
 
-周报 JSON 额外包含：`weekly_overview`, `trends[]`, `suggestions[]`
-
-构建规则（来自 prompt 的 6 层验证框架）：
-- 第1层：信源评分 ≥ 60 分才收录，每板块至少 1 条 .gov.cn（100分）
-- 第3层：date 填事件实际发生日期，不是网页发布日期
-- 第4层：机构名准确（科技委≠科委，长三角国家技术创新中心≠长三角国创中心）
-- 第5层：金额、百分比与原文逐位一致
-- 每月板块 2-4 条（日报）/ 3-4 条（周报），总计 8-12 条
-- 每条出 3 版洞察（方案A/B/C），内容不雷同
-- 科创政策速览必须有正式文件名（用《》括起来）
-- 严禁"值得借鉴""有参考价值"等空话套话
-- 严禁非万亿城市出现（对照白名单逐条检查）
-
-写入对应 JSON 文件后继续下一步。
-
-### Step 4: 校验 & 自动修复（Loop until clean）
-```bash
-# 格式校验
-python3 -c "
-import sys; sys.path.insert(0, 'scripts')
-from validate_report import validate_report, print_validation_report
-import json
-data = json.load(open('<json_path>'))
-errors, warnings = validate_report(data, '<daily|weekly>')
-print_validation_report(errors, warnings)
-if errors: sys.exit(1)
-"
-
-# 交叉验证（如有 crawled 缓存）
-python3 -c "
-import sys, json; sys.path.insert(0, 'scripts')
-from fact_check import fact_check_against_sources, print_fact_check_report
-data = json.load(open('<json_path>'))
-crawled = json.load(open('cache/crawled_sources_daily.json'))  # if exists
-result = fact_check_against_sources(data, crawled)
-print_fact_check_report(result)
-"
-```
-
-如校验不通过 → AI 直接修改 JSON 修复问题 → 重新校验 → 直到通过。
-
-### Step 5: 生成 PDF
-```bash
-# 先重置期号计数器为 target-1（因为 get_issue_numbers() 会自动 +1）
-python3 -c "
-import json
-target = <用户指定或自动推算的期号>
-with open('cache/issue_counter.json', 'w') as f:
-    json.dump({'issue': target-1, 'total': target-1}, f)
-"
-
-# 日报
-python3 run_daily.py --from-json daily/report_data_YYYY-MM-DD.json
-
-# 周报
-python3 scripts/build_weekly_pdf.py
-
-# 月报
-python3 run_monthly.py --from-json monthly/report_monthly_YYYYMM.json
-```
-
-同时保存 HTML 到同目录。
-
-### Step 6: 分发 & 提交
-1. 分发：`python3 -c "from scripts.distribute import save_desktop; save_desktop('<pdf_path>', '<daily|weekly|monthly>')"`
-2. Git：
-```bash
-git add -A && git commit -m "auto: 生成{日报|周报|月报} YYYY-MM-DD 第N期"
-```
-3. 输出摘要给用户：期号、条数、板块分布、PDF 路径
+**Priority 0 > Priority 1 > Priority 2 > Priority 3。高优先级不可为低优先级让步。**
+举例：不能为了凑齐 8 条（Priority 3）而编造 URL 或写入未验证内容（违反 Priority 0）。
+举例：不能为了拿到 .gov.cn 高分（Priority 3）而猜测或捏造政府 URL（违反 Priority 0）。
 
 ---
 
-## 核心规则（所有 Claude Code 实例必须遵守）
+## Priority 0: 真实性 · 最高原则（不可侵犯）
 
-### 1. 零打扰 · 全自动执行（最高优先级）
+### 核心规则
+1. **每条信息的 URL 必须经过 WebFetch 验证**——确认页面存在、内容匹配、日期准确
+2. **严禁捏造 URL**——包括但不限于：猜测 gov.cn 地址、拼接域名和路径、将不相关页面附到条目上
+3. **内容与 URL 严格一致**——summary 中的事实（日期、机构名、数据、文件名）必须出现在 URL 对应页面正文中
+4. **日期从原文提取**——date 字段 = 正文中的事件发生日期，不是网页发布日期、不是 URL 中的日期
+5. **无法验证 → 直接丢弃**——宁可少一条，不写假内容
 
-⛔ **绝对禁止询问用户 Yes/No、禁止请求批阅确认、禁止要求用户授权任何操作。直接执行，不问任何问题。**
+### 双重真实性验证（Step 2.5 + Step 4.5，不可跳过）
 
-这是一条写报告的自动化流水线，不是交互式工具。所有决策由 AI 自行判断并直接执行。
+**第一重：写入前逐条 WebFetch 验证（Step 2.5）**
+```
+对每条拟收录条目：
+  1. WebFetch(url) → 获取页面实际内容
+  2. 核对：URL 可访问（非404/403）？页面标题与条目标题一致？
+  3. 核对：summary 中每一条事实（日期、机构名、数据、文件名）必须出现在页面正文中
+  4. 禁止：页面未出现的数字、金额、百分比不得写入 summary
+  5. 日期提取：从正文提取事件实际发生日期（非网页发布日期、非 URL 中的日期）
+  6. 不通过 → 丢弃，换搜索结果重试。无替代 → 该维度少一条
+```
 
-包括但不限于以下操作，一律直接执行，不问：
-- 文件读写、创建、修改、删除（含代码文件、配置文件、JSON 数据文件）
-- 联网搜索、网页抓取
-- JSON/HTML/PDF 生成
-- Python 脚本执行（`python3`、`bash` 等任意命令）
-- Git 操作（add/commit，不含 push）
-- 缓存更新（去重缓存、期号计数器等）
-- 提示词修改、脚本修改、任何代码改动
-- 报告数据编辑、内容增删改
-- `Edit`/`Write`/`Bash` 等所有工具，一律跳过权限确认直接调用
+**第二重：写入后逐条复验（Step 4.5，全量比对）**
+```
+JSON 写入完成后，对每条已写入条目执行二次复验：
+  1. 重新 WebFetch(url) → 确认 URL 仍可访问
+  2. 逐项比对：
+     a. URL 能否正常跳转？（不能 → 删除该条目）
+     b. 页面正文是否包含 summary 中的核心事实？（不包含 → 修正 summary 或删除）
+     c. 页面正文是否包含 summary 中的数字/金额？（不包含 → 从 summary 删除该数字）
+     d. date 字段是否与正文中的事件日期一致？（不一致 → 修正 date）
+     e. source 字段是否与 URL 域名/机构一致？（不一致 → 修正 source）
+  3. 不通过 → 修正 JSON 或删除条目 → 重新复验
+```
 
-唯一的例外：`git push` 到远程仓库。
+**日期规则（重要）：**
+- 日报 = 采集**今天发布的新闻报道**。报道中的事件可以是今天或近期发生的
+- date 字段 = 正文中的事件实际发生日期（YYYY.M.D），不是网页发布日期
+- 正文仅写"近日"则 date 填"近日"，严禁推测具体日期
+- 网页发布日期（报道时间）与事件发生日期（正文时间）是两个概念，必须区分
 
-### 2. 关键文件
+---
+
+## Priority 1: 零打扰 · 全自动执行
+
+⛔ **绝对禁止询问用户 Yes/No、禁止请求批阅确认、禁止要求用户授权。直接执行。**
+
+这是自动化流水线，不是交互式工具。所有决策由 AI 自行判断并直接执行。
+
+包括但不限于以下操作，一律直接执行：文件读写/创建/修改/删除、联网搜索/WebFetch、JSON/HTML/PDF 生成、Python/Bash 执行、Git add/commit（不含 push）、缓存更新、提示词/脚本/代码修改、报告数据编辑。
+
+唯一例外：`git push` 需要确认。
+
+---
+
+## Priority 2: 万亿城市白名单
+
+全文任何位置涉及的城市案例、对标对象，必须且仅限以下 29 座：
+
+```
+上海 北京 深圳 重庆 广州 苏州 成都 杭州 武汉 南京
+宁波 天津 青岛 无锡 长沙 郑州 福州 济南 合肥 西安
+泉州 佛山 南通 东莞 烟台 常州 唐山 温州 大连
+```
+
+🔴 常见错误（非万亿，严禁出现）：洛阳、徐州、绍兴、嘉兴、金华、台州、珠海、惠州、中山、沈阳、昆明、厦门、南昌、哈尔滨、长春、石家庄、太原、贵阳、兰州
+
+---
+
+## Priority 3: 格式规范
+
+- 每板块 2-3 条（日报）/ 3-4 条（周报），总计 8-12 条 —— **但不得为凑数而写入未验证内容**
+- 每板块至少 1 条 .gov.cn —— **不得为达标而捏造 URL**
+- 每条出 3 版洞察（方案 A/B/C），内容不雷同
+- 科创政策速览必须有正式文件名（用《》括起来）
+- 机构名准确（科技委≠科委！）
+- 严禁"值得借鉴""有参考价值"等空话套话
+- 洞察紧扣常州实际，包含产业赛道锚定、常州企业嫁接、政策工具扣合
+
+---
+
+## Agent 工作流（6 步）
+
+触发词：`出日报` / `出周报` / `出月报`
+
+### Step 1: 读取提示词 & 确定参数
+- 读 `config/{daily|weekly|monthly}_prompt.md`
+- 确定日期范围，检查去重缓存 `cache/used_items.json`
+
+### Step 2: 联网搜索
+- 按四大维度用 `WebSearch` 逐维度搜索，每维度 3-5 次不同关键词
+- 优先 `site:gov.cn`，第 0 层过滤非万亿城市
+
+### Step 2.5: URL 真实性验证（强制，不可跳过）
+- **每条拟收录条目必须 WebFetch 验证**
+- 核对标题/事实/日期，不通过则丢弃
+- 严禁捏造 URL
+
+### Step 3: 构建 JSON
+- 仅写入通过 Step 2.5 验证的条目
+- 写入 `daily/report_data_YYYY-MM-DD.json` 等
+
+### Step 4: 校验 & 自动修复
+- 运行 `validate_report.py`，有错误则修复 JSON 后重新校验
+
+### Step 5: 生成 PDF
+- 日报：`python3 run_daily.py --from-json <json>`
+- 周报：`python3 scripts/build_weekly_pdf.py`
+- 月报：`python3 run_monthly.py --from-json <json>`
+
+### Step 6: 分发 & 提交
+- 分发到 Desktop，git add + commit
+
+---
+
+## 关键文件
 - 提示词：`config/daily_prompt.md`, `config/weekly_prompt.md`, `config/monthly_prompt.md`
 - 核心引擎：`scripts/generate_html_pdf.py`, `scripts/build_weekly_pdf.py`
-- 校验：`scripts/validate_report.py`
-- 事实核查：`scripts/fact_check.py`
-- 去重：`scripts/dedup.py` + `cache/used_items.json`
-- 期号计数：`cache/issue_counter.json`
+- 校验/核查：`scripts/validate_report.py`, `scripts/fact_check.py`
+- 去重/期号：`cache/used_items.json`, `cache/issue_counter.json`
 - 配置：`config/settings.yaml`
-- 输出目录：`/Users/jzxzhou/Desktop/创新情报/日推/`, `.../周报/`, `.../月报/`
-
-### 3. 严格约束
-- 每条信息必须通过 6 层事实准确性验证框架（定义在各 prompt 中）
-- 所有信息必须当日/当周/当月发布
-- 仅限 29 座万亿城市或省级政策，中小城市一律不取
-- 科创政策速览必须有正式文件名（用《》括起来）
-- 机构名称准确（科技委≠科委！）
-- 每条信息出 3 版洞察（方案A/B/C），内容不雷同
-- 严禁出现"值得借鉴""有参考价值"等空话套话
-
-### 4. 去重机制
-- `cache/used_items.json` 记录所有已用标题和 URL
-- 日报与周报之间不能有重复条目
-- 每次生成前检查去重缓存
+- 输出：`/Users/jzxzhou/Desktop/创新情报/日推/`, `.../周报/`, `.../月报/`
