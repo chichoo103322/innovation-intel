@@ -30,7 +30,7 @@ def build_talent_daily_html(data, date_cn, issue_no, total_no):
                 insights = [insights]
             insight_blocks = ""
             for ins in insights:
-                insight_blocks += f"""<div class="item-insight"><p>{ins}</p></div>"""
+                insight_blocks += f"""<div class="item-insight"><span class="insight-label">对标启示：</span><p>{ins}</p></div>"""
             source_html = f'<p class="item-source">{source}</p>' if source else ""
             url_html = f'<p class="item-source-link">信息来源：<a href="{url}">{url}</a></p>' if url else ""
             sections_html += f"""
@@ -73,7 +73,8 @@ def build_talent_daily_html(data, date_cn, issue_no, total_no):
   .item-date {{ font-size: 6.5pt; font-weight: 400; color: var(--gray); margin-left: 3px; }}
   .item-summary {{ font-size: 7.5pt; color: var(--text-secondary); line-height: 1.45; margin-bottom: 2px; text-align: justify; }}
   .item-insight {{ background: var(--accent-bg); border-radius: 2px; padding: 3px 8px; margin: 2px 0; }}
-  .item-insight p {{ font-size: 8.5pt; color: #6b4f10; line-height: 1.55; }}
+  .item-insight p {{ font-size: 8.5pt; color: #6b4f10; line-height: 1.55; display: inline; }}
+  .insight-label {{ font-size: 9.5pt; font-weight: 700; color: var(--accent); letter-spacing: 0.5px; margin-right: 3px; }}
   .item-source {{ font-size: 6pt; color: #94a3b8; text-align: right; margin-top: 1px; }}
   .item-source-link {{ font-size: 6pt; color: #94a3b8; margin-top: 0; word-break: break-all; }}
   .item-source-link a {{ color: #64748b; text-decoration: none; }}
@@ -136,7 +137,7 @@ def build_talent_weekly_html(data, date_cn, issue_no, total_no):
                 insights = [insights]
             insight_blocks = ""
             for ins in insights:
-                insight_blocks += f"""<div class="item-insight"><p>{ins}</p></div>"""
+                insight_blocks += f"""<div class="item-insight"><span class="insight-label">对标启示：</span><p>{ins}</p></div>"""
             source_html = f'<p class="item-source">{source}</p>' if source else ""
             url_html = f'<p class="item-source-link">信息来源：<a href="{url}">{url}</a></p>' if url else ""
             sections_html += f"""
@@ -193,7 +194,8 @@ def build_talent_weekly_html(data, date_cn, issue_no, total_no):
   .item-date {{ font-size: 6.5pt; font-weight: 400; color: var(--gray); margin-left: 3px; }}
   .item-summary {{ font-size: 7.5pt; color: var(--text-secondary); line-height: 1.45; margin-bottom: 2px; text-align: justify; }}
   .item-insight {{ background: var(--accent-bg); border-radius: 2px; padding: 3px 8px; margin: 2px 0; }}
-  .item-insight p {{ font-size: 8.5pt; color: #6b4f10; line-height: 1.55; }}
+  .item-insight p {{ font-size: 8.5pt; color: #6b4f10; line-height: 1.55; display: inline; }}
+  .insight-label {{ font-size: 9.5pt; font-weight: 700; color: var(--accent); letter-spacing: 0.5px; margin-right: 3px; }}
   .item-source {{ font-size: 6pt; color: #94a3b8; text-align: right; margin-top: 1px; }}
   .item-source-link {{ font-size: 6pt; color: #94a3b8; margin-top: 0; word-break: break-all; }}
   .item-source-link a {{ color: #64748b; text-decoration: none; }}
