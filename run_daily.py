@@ -91,24 +91,33 @@ def _clean_val(raw_val: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# 去重
+# 去重（三层：精确匹配 + 模糊匹配 + 事实指纹）
 # ---------------------------------------------------------------------------
 
 def dedup_sections(sections: list[dict]) -> list[dict]:
     sys.path.insert(0, str(SCRIPT_DIR))
-    from dedup import check_duplicate
+    from dedup import check_duplicate as check_dup_3layer
 
     filtered = []
     skipped = 0
     for section in sections:
         new_items = []
         for item in section.get("items", []):
-            is_dup, date = check_duplicate(
-                title=item.get("title", ""),
-                url=item.get("url", "")
+            title = item.get("title", "")
+            url = item.get("url", "")
+            date_i = item.get("date", "")
+            source = item.get("source", "")
+            # 提取政策名用于指纹
+            import re
+            policy_match = re.search(r'《([^》]+)》', title)
+            policy = policy_match.group(1) if policy_match else ""
+
+            is_dup, dup_date, reason = check_dup_3layer(
+                title=title, url=url,
+                date=date_i, institution=source, policy=policy
             )
             if is_dup:
-                print(f"[去重] 跳过: {item.get('title', '')[:50]}... (已于{date}使用)")
+                print(f"[去重] 跳过: {title[:50]}... ({reason})")
                 skipped += 1
             else:
                 new_items.append(item)
@@ -119,14 +128,38 @@ def dedup_sections(sections: list[dict]) -> list[dict]:
     return filtered
 
 
-def mark_dedup(sections: list[dict]):
+def mark_dedup_pending(sections: list[dict]):
+    """写入待确认区（事务性标记，PDF成功后才提交）"""
     sys.path.insert(0, str(SCRIPT_DIR))
-    from dedup import mark_used
+    from dedup import mark_pending
 
     for section in sections:
         for item in section.get("items", []):
-            mark_used(title=item.get("title", ""), url=item.get("url", ""))
-    print(f"[去重] 已标记所有条目")
+            import re
+            policy_match = re.search(r'《([^》]+)》', item.get("title", ""))
+            policy = policy_match.group(1) if policy_match else ""
+            mark_pending(
+                title=item.get("title", ""),
+                url=item.get("url", ""),
+                date=item.get("date", ""),
+                institution=item.get("source", ""),
+                policy=policy
+            )
+    print(f"[去重] 已暂存所有条目至待确认区")
+
+
+def commit_dedup():
+    """PDF生成成功后，提交去重记录"""
+    sys.path.insert(0, str(SCRIPT_DIR))
+    from dedup import commit_pending
+    commit_pending()
+
+
+def rollback_dedup():
+    """生成失败时回滚去重记录"""
+    sys.path.insert(0, str(SCRIPT_DIR))
+    from dedup import rollback_pending
+    rollback_pending()
 
 
 # ---------------------------------------------------------------------------
@@ -211,7 +244,7 @@ def main():
             print_fact_check_report(fc_result)
 
         # 去重记录
-        mark_dedup(sections)
+        mark_dedup_pending(sections)
 
         # 检查是否已有今日 PDF
         today_pdf = daily_dir / f'创新常州·对标快讯_{today_stem}.pdf'
