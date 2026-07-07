@@ -91,7 +91,7 @@ JSON 写入完成后，对每条已写入条目执行二次复验：
 
 ## Priority 3: 格式规范
 
-- 每板块 2-3 条（日报）/ 3-4 条（周报），总计 8-12 条 —— **但不得为凑数而写入未验证内容**
+- 日报每板块目标 2-3 条，周报 3-4 条，以实际可验证条目为准，宁少勿编
 - 每板块至少 1 条 .gov.cn —— **不得为达标而捏造 URL**
 - 每条出 3 版洞察（方案 A/B/C），内容不雷同
 - 科创政策速览必须有正式文件名（用《》括起来）
@@ -103,18 +103,25 @@ JSON 写入完成后，对每条已写入条目执行二次复验：
 
 ## 会话启动流程（项目拖入窗口时触发）
 
-当用户将项目文件夹拖入 Claude Code 窗口时，**首先询问以下问题**（这是唯一需要交互的环节）：
+当用户将项目文件夹拖入 Claude Code 窗口时，**首先询问以下问题**：
 
 ```
-我看到这是创新常州·对标快讯项目。需要我生成今天的报告吗？
+我看到这是创新常州对标快讯项目。需要我生成哪份报告？
 
 选项：
-  A. 生成日报   B. 生成周报   C. 生成月报   D. 暂不需要
+  A. 创新常州·对标快讯（日报）     B. 创新常州·对标快讯（周报）
+  C. 常州人才·对标快讯（日报）     D. 常州人才·对标快讯（周报）
+  E. 暂不需要
 
 期数是第几期？（如不确定，留空由我自动推算）
 ```
 
-用户选择报告类型和期数后 → 进入下方 Agent 工作流自动执行。
+| 选项 | 报告 | 提示词 | JSON 路径 | 生成命令 | 输出目录 |
+|---|---|---|---|---|---|
+| A | 创新常州·日报 | config/daily_prompt.md | daily/report_data_YYYY-MM-DD.json | python3 run_daily.py --from-json ... | ~/Desktop/创新情报/日报/ |
+| B | 创新常州·周报 | config/weekly_prompt.md | weekly/report_weekly_YYYYMMDD.json | python3 scripts/build_weekly_pdf.py | ~/Desktop/创新情报/周报/ |
+| C | 常州人才·日报 | config/talent_daily_prompt.md | talent_daily/report_data_YYYY-MM-DD.json | python3 run_talent_daily.py --from-json ... | ~/Desktop/人才快讯/日报/ |
+| D | 常州人才·周报 | config/talent_weekly_prompt.md | talent_weekly/report_weekly_data.json | python3 run_talent_weekly.py | ~/Desktop/人才快讯/周报/ |
 
 ---
 
@@ -147,7 +154,7 @@ JSON 写入完成后，对每条已写入条目执行二次复验：
 
 ## Agent 工作流（6 步）
 
-触发词：`出日报` / `出周报` / `出月报`
+触发词：`出日报` / `出周报` / `出月报` / `出人才日报` / `出人才周报`
 
 ### Step 1: 读取提示词 & 确定参数
 - 读 `config/{daily|weekly|monthly}_prompt.md`
