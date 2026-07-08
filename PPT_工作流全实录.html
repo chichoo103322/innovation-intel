@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Agent 工作流搭建实战指南</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<style>
+/* ===========================================
+   TECH-BUSINESS STYLE — CLEAN & BIG
+   =========================================== */
+:root {
+  --bg-page: #f7f8fa; --bg-white: #ffffff; --bg-navy: #0f1a2e;
+  --text-primary: #1a2332; --text-secondary: #5a6b7f; --text-tertiary: #94a3b8;
+  --blue: #2563eb; --sky: #0ea5e9; --gray-border: #e2e8f0;
+  --green: #00A67E; --green-pale: #e6f7ee;
+  --orange: #D4772B; --orange-pale: #fff3e6;
+
+  --font-display: 'Plus Jakarta Sans', 'Noto Sans SC', sans-serif;
+  --font-body: 'Noto Sans SC', sans-serif;
+  --font-num: 'Plus Jakarta Sans', sans-serif;
+
+  --title-size: clamp(2.2rem, 6vw, 4.8rem);
+  --h2-size: clamp(1.4rem, 3.2vw, 2.4rem);
+  --h3-size: clamp(1.1rem, 2.2vw, 1.6rem);
+  --body-size: clamp(0.95rem, 1.5vw, 1.2rem);
+  --small-size: clamp(0.8rem, 1vw, 0.95rem);
+  --slide-padding: clamp(3rem, 7vw, 5rem);
+  --content-gap: clamp(1rem, 1.8vw, 2rem);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ===========================================
+   VIEWPORT FITTING
+   =========================================== */
+html, body { height: 100%; overflow-x: hidden; }
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+.slide { width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; scroll-snap-align: start; display: flex; flex-direction: column; position: relative; }
+.slide-content { flex: 1; display: flex; flex-direction: column; justify-content: center; max-height: 100%; overflow: hidden; padding: var(--slide-padding); }
+img { max-width: 100%; max-height: min(50vh, 400px); object-fit: contain; border-radius: 0.5rem; }
+
+@media (max-height: 700px) {
+  :root { --slide-padding: clamp(1.5rem, 4vw, 2.5rem); --content-gap: clamp(0.6rem, 1.2vw, 1.2rem); --title-size: clamp(1.6rem, 4.5vw, 3rem); --h2-size: clamp(1.1rem, 2.6vw, 1.8rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+  html { scroll-behavior: auto; }
+}
+
+/* ===========================================
+   GLOBAL
+   =========================================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg-page); color: var(--text-primary); font-family: var(--font-body); font-size: var(--body-size); line-height: 1.7; font-weight: 400; }
+
+/* ===========================================
+   ANIMATIONS
+   =========================================== */
+.reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.65s var(--ease-out-expo), transform 0.65s var(--ease-out-expo); }
+.slide.visible .reveal { opacity: 1; transform: translateY(0); }
+.reveal:nth-child(1) { transition-delay: 0.04s; } .reveal:nth-child(2) { transition-delay: 0.10s; }
+.reveal:nth-child(3) { transition-delay: 0.16s; } .reveal:nth-child(4) { transition-delay: 0.22s; }
+.reveal:nth-child(5) { transition-delay: 0.28s; } .reveal:nth-child(6) { transition-delay: 0.34s; }
+.reveal:nth-child(7) { transition-delay: 0.40s; } .reveal:nth-child(8) { transition-delay: 0.46s; }
+
+/* ===========================================
+   PROGRESS & NAV
+   =========================================== */
+.progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--blue), var(--sky)); z-index: 9999; transition: width 0.4s ease; }
+.nav-dots { position: fixed; right: clamp(0.5rem, 1.5vw, 1.5rem); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 0.5rem; z-index: 9998; }
+.nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-tertiary); cursor: pointer; transition: all 0.3s ease; border: none; outline: none; }
+.nav-dot.active { background: var(--blue); transform: scale(1.7); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+.keyboard-hint { position: fixed; bottom: 1.2rem; left: 50%; transform: translateX(-50%); font-size: var(--small-size); color: var(--text-tertiary); z-index: 9997; pointer-events: none; }
+
+/* ===========================================
+   TITLE SLIDE
+   =========================================== */
+.title-slide { background: var(--bg-navy); justify-content: center; padding: var(--slide-padding); position: relative; overflow: hidden; }
+.title-slide::before { content: ''; position: absolute; top: -30%; right: -15%; width: 60%; height: 160%; background: radial-gradient(ellipse, rgba(37,99,235,0.15) 0%, transparent 70%); }
+.title-slide::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, var(--blue), var(--sky), transparent); }
+.title-slide h1 { font-family: var(--font-display); font-size: var(--title-size); font-weight: 800; color: #ffffff; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: clamp(1rem, 2vw, 2rem); position: relative; z-index: 1; }
+.title-slide h1 .accent { color: var(--sky); }
+.title-slide .subtitle { font-size: var(--h3-size); color: rgba(255,255,255,0.55); font-weight: 400; max-width: 70%; position: relative; z-index: 1; line-height: 1.6; }
+.title-slide .meta { font-size: var(--small-size); color: rgba(255,255,255,0.3); margin-top: clamp(1.5rem, 3vw, 3rem); letter-spacing: 0.05em; position: relative; z-index: 1; }
+
+/* ===========================================
+   CONTENT SLIDES
+   =========================================== */
+.content-slide { background: var(--bg-page); }
+.content-slide .slide-header { display: flex; align-items: flex-end; gap: clamp(0.8rem, 1.5vw, 1.5rem); margin-bottom: clamp(0.4rem, 0.8vw, 0.8rem); }
+.content-slide .section-num { font-family: var(--font-num); font-size: clamp(2.8rem, 6vw, 5rem); font-weight: 800; color: var(--blue); opacity: 0.1; line-height: 0.85; }
+.content-slide h2 { font-family: var(--font-display); font-size: var(--h2-size); font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; line-height: 1.25; }
+.content-slide .slide-subtitle { font-size: var(--body-size); color: var(--text-tertiary); font-weight: 400; margin-bottom: clamp(0.8rem, 1.5vw, 1.5rem); }
+
+/* ===========================================
+   LAYOUT
+   =========================================== */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 2.4vw, 2.5rem); }
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(0.8rem, 1.4vw, 1.5rem); }
+
+/* ===========================================
+   CARDS
+   =========================================== */
+.w-card { background: var(--bg-white); border: 1px solid var(--gray-border); border-radius: 0.6rem; padding: clamp(1rem, 1.6vw, 1.6rem); box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
+.w-card.blue-accent { border-left: 4px solid var(--blue); }
+.section-label { font-family: var(--font-num); font-size: var(--small-size); color: var(--blue); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.5rem; }
+.blue-box { background: var(--blue); color: #fff; border-radius: 0.6rem; padding: clamp(0.8rem, 1.4vw, 1.4rem); text-align: center; }
+.light-box { background: #eff6ff; border: 1px solid rgba(37,99,235,0.15); border-radius: 0.6rem; padding: clamp(0.8rem, 1.4vw, 1.4rem); text-align: center; }
+
+/* ===========================================
+   STEP LIST
+   =========================================== */
+.step-list { display: flex; flex-direction: column; gap: clamp(0.4rem, 0.7vw, 0.7rem); }
+.step-item { display: flex; align-items: center; gap: clamp(0.8rem, 1.2vw, 1.2rem); padding: clamp(0.6rem, 1vw, 1rem); background: var(--bg-white); border: 1px solid var(--gray-border); border-radius: 0.5rem; }
+.step-item .step-num { width: clamp(2rem, 3vw, 3rem); height: clamp(2rem, 3vw, 3rem); border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-num); font-weight: 700; font-size: var(--body-size); flex-shrink: 0; }
+.step-item .step-content h4 { font-size: var(--body-size); font-weight: 600; color: var(--text-primary); }
+.step-item .step-content p { font-size: var(--small-size); color: var(--text-secondary); font-weight: 400; }
+
+/* ===========================================
+   CODE BLOCK
+   =========================================== */
+.code-block { background: var(--bg-navy); color: rgba(255,255,255,0.9); border-radius: 0.6rem; padding: clamp(1rem, 1.4vw, 1.4rem); font-family: 'SF Mono', 'Courier New', monospace; font-size: var(--small-size); line-height: 1.7; overflow: hidden; }
+.code-block .hl { color: var(--sky); }
+
+/* ===========================================
+   TAGS
+   =========================================== */
+.tag { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 2rem; font-size: var(--small-size); font-weight: 600; font-family: var(--font-num); letter-spacing: 0.03em; }
+.tag.codex { background: var(--green-pale); color: var(--green); }
+.tag.cc { background: var(--orange-pale); color: var(--orange); }
+.tag.skill { background: #f3e8ff; color: #7c3aed; }
+.tag.blue { background: #eff6ff; color: var(--blue); }
+.tag.cmd { background: #1a2332; color: #fff; padding: 0.2rem 0.7rem; border-radius: 0.3rem; font-family: 'SF Mono', monospace; font-weight: 400; letter-spacing: 0; }
+
+/* ===========================================
+   STAT CARDS
+   =========================================== */
+.stat-row { display: flex; gap: clamp(0.8rem, 1.5vw, 1.5rem); }
+.stat-card { flex: 1; background: var(--bg-white); border: 1px solid var(--gray-border); border-radius: 0.6rem; padding: clamp(0.6rem, 1vw, 1.2rem); text-align: center; }
+.stat-card .num { font-family: var(--font-num); font-size: clamp(1.6rem, 3vw, 3rem); font-weight: 800; line-height: 1.1; }
+.stat-card .label { font-size: var(--small-size); color: var(--text-secondary); margin-top: 0.2rem; }
+
+/* ===========================================
+   PHASE COMPARE
+   =========================================== */
+.phase-compare { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(0.8rem, 1.4vw, 1.5rem); }
+.phase-col { background: var(--bg-white); border: 1px solid var(--gray-border); border-radius: 0.6rem; padding: clamp(0.8rem, 1.3vw, 1.4rem); position: relative; overflow: hidden; }
+.phase-col::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.phase-col.p1::before { background: var(--text-tertiary); }
+.phase-col.p2::before { background: var(--sky); }
+.phase-col.p3::before { background: var(--blue); }
+.phase-col .phase-label { font-family: var(--font-num); font-size: var(--small-size); font-weight: 700; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.phase-col.p1 .phase-label { color: var(--text-tertiary); }
+.phase-col.p2 .phase-label { color: var(--sky); }
+.phase-col.p3 .phase-label { color: var(--blue); }
+.phase-col .phase-title { font-family: var(--font-display); font-size: var(--h3-size); font-weight: 700; margin-bottom: 0.4rem; }
+.phase-col ul { list-style: none; padding: 0; }
+.phase-col li { font-size: var(--small-size); color: var(--text-secondary); padding: 0.2rem 0; line-height: 1.6; }
+.phase-col li::before { content: ''; display: inline-block; width: 5px; height: 5px; border-radius: 50%; margin-right: 0.4rem; vertical-align: middle; }
+.phase-col.p1 li::before { background: var(--text-tertiary); }
+.phase-col.p2 li::before { background: var(--sky); }
+.phase-col.p3 li::before { background: var(--blue); }
+
+/* ===========================================
+   PROMPT CARDS
+   =========================================== */
+.prompt-card { padding: clamp(0.8rem, 1.2vw, 1.2rem); border-radius: 0.5rem; border: 1px solid var(--gray-border); background: var(--bg-white); }
+.prompt-card .pc-ver { font-family: var(--font-num); font-weight: 800; font-size: var(--small-size); margin-bottom: 0.3rem; }
+.prompt-card .pc-what { font-weight: 600; font-size: var(--body-size); margin-bottom: 0.2rem; }
+.prompt-card .pc-how { font-size: var(--small-size); color: var(--text-secondary); line-height: 1.6; }
+
+/* ===========================================
+   AGENT COMPARE
+   =========================================== */
+.agent-compare { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 2vw, 2rem); }
+.agent-card { border-radius: 0.7rem; padding: clamp(1rem, 1.6vw, 1.6rem); }
+.agent-card.codex-card { background: var(--green-pale); border: 1px solid rgba(0,166,126,0.2); }
+.agent-card.cc-card { background: var(--orange-pale); border: 1px solid rgba(212,119,43,0.2); }
+.agent-card .agent-icon { font-family: var(--font-num); font-weight: 800; font-size: var(--h2-size); margin-bottom: 0.4rem; }
+.agent-card.codex-card .agent-icon { color: var(--green); }
+.agent-card.cc-card .agent-icon { color: var(--orange); }
+.agent-card .agent-role { font-weight: 700; font-size: var(--body-size); margin-bottom: 0.4rem; }
+.agent-card .agent-strengths { list-style: none; padding: 0; }
+.agent-card .agent-strengths li { font-size: var(--small-size); padding: 0.2rem 0; line-height: 1.6; }
+.agent-card .agent-strengths li::before { content: '✓ '; font-weight: 700; }
+.agent-card.codex-card .agent-strengths li::before { color: var(--green); }
+.agent-card.cc-card .agent-strengths li::before { color: var(--orange); }
+
+/* ===========================================
+   SETUP GUIDE CARDS
+   =========================================== */
+.setup-card { background: var(--bg-white); border: 1px solid var(--gray-border); border-radius: 0.6rem; padding: clamp(0.8rem, 1.3vw, 1.3rem); }
+.setup-card .setup-num { font-family: var(--font-num); font-size: var(--h2-size); font-weight: 800; color: var(--blue); margin-bottom: 0.3rem; }
+.setup-card h4 { font-size: var(--body-size); font-weight: 700; margin-bottom: 0.5rem; }
+
+/* ===========================================
+   SCREENSHOT FRAME
+   =========================================== */
+.screenshot-frame { background: var(--bg-white); border: 1px solid var(--gray-border); border-radius: 0.6rem; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.screenshot-frame img { width: 100%; max-height: min(35vh, 300px); object-fit: contain; display: block; }
+
+/* ===========================================
+   THANK YOU
+   =========================================== */
+.thanks-slide { background: var(--bg-navy); justify-content: center; align-items: center; text-align: center; position: relative; }
+.thanks-slide::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: clamp(16rem, 35vw, 35rem); height: clamp(16rem, 35vw, 35rem); border: 1px solid rgba(255,255,255,0.06); border-radius: 50%; }
+.thanks-slide h1 { font-family: var(--font-display); font-size: var(--title-size); font-weight: 800; color: #ffffff; position: relative; z-index: 1; }
+.thanks-slide .thanks-divider { width: clamp(3rem, 5vw, 5rem); height: 2px; background: var(--sky); margin: clamp(1.2rem, 2.5vw, 2.5rem) auto; position: relative; z-index: 1; }
+.thanks-slide p { color: rgba(255,255,255,0.4); position: relative; z-index: 1; line-height: 2; }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<nav class="nav-dots" id="navDots"></nav>
+<div class="keyboard-hint">← → 翻页 · 空格翻页 · 触屏滑动</div>
+
+<!-- ══════════════  1. TITLE  ══════════════ -->
+<section class="slide title-slide">
+  <h1 class="reveal">用 AI Agent<br/><span class="accent">搭建你的专属工作流</span></h1>
+  <p class="subtitle reveal">从零开始：安装 → 配置 → 拖入项目 → Agent 全自动干活</p>
+  <p class="meta reveal">创新常州 · 对标快讯 实战案例 &nbsp;/&nbsp; Claude Code + DeepSeek &nbsp;/&nbsp; 2026.7</p>
+</section>
+
+<!-- ══════════════  2. DEMO  ══════════════ -->
+<section class="slide content-slide">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="section-num">00</span>
+      <h2>先看效果：这个工作流是怎么跑的</h2>
+    </div>
+    <p class="slide-subtitle reveal">Claude Code + DeepSeek API → 拖入项目文件夹 → 输入"出日报" → 全自动 → PDF 到桌面</p>
+    <div class="two-col reveal">
+      <div>
+        <p class="section-label">1. 本地部署 Claude Code + DeepSeek</p>
+        <div class="code-block" style="margin-bottom:0.6rem;">
+          <p style="color:rgba(255,255,255,0.3);"># 一行命令安装</p>
+          <p style="color:rgba(255,255,255,0.7);">npm install -g @anthropic-ai/claude-code</p>
+          <p style="color:rgba(255,255,255,0.3);margin-top:0.5rem;"># 接入 DeepSeek API</p>
+          <p style="color:rgba(255,255,255,0.7);">claude --provider deepseek \</p>
+          <p style="color:rgba(255,255,255,0.7);">&nbsp;&nbsp;--model deepseek-v4-pro \</p>
+          <p style="color:rgba(255,255,255,0.7);">&nbsp;&nbsp;--api-key $DEEPSEEK_API_KEY</p>
+          <p style="color:rgba(255,255,255,0.2);margin-top:0.5rem;">成本仅 ¥25/月</p>
+        </div>
+        <p class="section-label">2. 拖入项目文件夹</p>
+        <div class="w-card blue-accent">
+          <p style="font-weight:600;font-size:var(--body-size);">Agent 自动识别 → 加载 CLAUDE.md</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">优先级体系、白名单、工作流全部就绪。零配置。</p>
+        </div>
+      </div>
+      <div>
+        <p class="section-label">3. CC 窗口实际画面</p>
+        <div class="screenshot-frame">
+          <img src="file:///Users/jzxzhou/Desktop/创新情报/截屏2026-07-07 18.15.45.png" alt="Claude Code 项目欢迎界面"/>
+        </div>
+      </div>
+    </div>
+    <div class="blue-box reveal" style="margin-top:0.8rem;">
+      <p style="font-size:var(--body-size);font-weight:600;">输入「出日报」→ CC 自带 WebSearch 全网搜索 → WebFetch 逐条验证 → JSON → 校验 → PDF → 桌面。全程 10-15 分钟。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════  3. 零基础部署指南  ══════════════ -->
+<section class="slide content-slide">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="section-num">01</span>
+      <h2>零基础部署：从安装到跑起来，一共三步</h2>
+    </div>
+    <p class="slide-subtitle reveal">完全不需要编程基础。下面是每一步的具体操作</p>
+    <div class="two-col reveal">
+      <div class="setup-card">
+        <p class="setup-num">01</p>
+        <h4>安装 Claude Code</h4>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);line-height:1.7;margin-bottom:0.5rem;">
+          打开电脑的"终端"（Mac 在启动台搜 Terminal，Windows 搜 PowerShell），复制粘贴下面这行，回车：</p>
+        <div class="code-block" style="margin-bottom:0.4rem;">
+          <p style="color:rgba(255,255,255,0.7);">npm install -g @anthropic-ai/claude-code</p>
+        </div>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);">如果提示 <span class="tag cmd">npm: command not found</span>，先去 <strong>nodejs.org</strong> 下载安装 Node.js，再回来执行这一行。</p>
+      </div>
+      <div class="setup-card">
+        <p class="setup-num">02</p>
+        <h4>接入 API（推荐 DeepSeek）</h4>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);line-height:1.7;margin-bottom:0.5rem;">
+          注册 DeepSeek 账号 → 在控制台拿到 API Key → 在终端执行：</p>
+        <div class="code-block" style="margin-bottom:0.4rem;">
+          <p style="color:rgba(255,255,255,0.7);">claude --provider deepseek \</p>
+          <p style="color:rgba(255,255,255,0.7);">&nbsp;&nbsp;--model deepseek-v4-pro \</p>
+          <p style="color:rgba(255,255,255,0.7);">&nbsp;&nbsp;--api-key 你的KEY</p>
+        </div>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);">也可以用 OpenAI API 或 Anthropic API，配置方式一样。DeepSeek 最便宜，<strong>¥25/月</strong>够用。</p>
+      </div>
+    </div>
+    <div class="two-col reveal" style="margin-top:0.8rem;">
+      <div class="setup-card">
+        <p class="setup-num">03</p>
+        <h4>装 Skill 插件（可选，按需装）</h4>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);line-height:1.7;">
+          在 CC 窗口里直接说就行：<br/>
+          "帮我安装 PDF Viewer 插件" → 能查看和批注 PDF<br/>
+          "帮我安装 Frontend Slides 插件" → 能自动生成 PPT<br/>
+          "帮我安装 BigQuery 插件" → 能查询数据库<br/><br/>
+          Skill 是即插即用的，Agent 会在你需要的时候自动调用。
+        </p>
+      </div>
+      <div class="setup-card" style="border: 2px solid var(--blue);background:#f8faff;">
+        <p class="setup-num" style="font-size:var(--h3-size);">→ 完成</p>
+        <h4>拖入项目文件夹，开始干活</h4>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);line-height:1.7;">
+          把项目文件夹拖进 CC 窗口 → Agent 自动加载 CLAUDE.md → 输入触发词（比如"出日报"）→ 回车。<br/><br/>
+          <strong>从零到跑起来：10 分钟。</strong><br/>
+          不需要学代码，不需要配环境，不需要买服务器。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════  4. Agent 不是聊天工具  ══════════════ -->
+<section class="slide content-slide">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="section-num">02</span>
+      <h2>Agent 不是聊天工具，是你的工作流引擎</h2>
+    </div>
+    <p class="slide-subtitle reveal">刚才看到的全流程，Agent 替代的不是"思考"，而是"执行一套固定操作"</p>
+    <div class="two-col reveal">
+      <div>
+        <div class="w-card" style="margin-bottom:0.6rem;border-left:4px solid var(--text-tertiary);">
+          <p style="font-weight:600;font-size:var(--body-size);">"AI 不就是问一句答一句吗"</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">那是 Chatbot。Agent 能读写文件、跑脚本、打开网页验证信息——它是端到端的执行器，不是一个答题器。</p>
+        </div>
+        <div class="w-card" style="margin-bottom:0.6rem;border-left:4px solid var(--text-tertiary);">
+          <p style="font-weight:600;font-size:var(--body-size);">"每次都要重新解释需求，好烦"</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">CLAUDE.md 写一次放项目里，Agent 每次打开自动读。换电脑、换人，行为完全一致。</p>
+        </div>
+        <div class="w-card" style="border-left:4px solid var(--text-tertiary);">
+          <p style="font-weight:600;font-size:var(--body-size);">"AI 不能动我电脑上的文件吧"</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">Agent 创建/修改文件、执行 Python、调用 Chrome 渲染 PDF——全都能干。</p>
+        </div>
+      </div>
+      <div>
+        <div class="light-box" style="text-align:left;margin-bottom:0.8rem;padding:clamp(1.2rem,2vw,2rem);">
+          <p style="font-weight:700;font-size:var(--h3-size);margin-bottom:0.6rem;">你不是「AI 的使用者」</p>
+          <p style="font-size:var(--body-size);color:var(--text-secondary);line-height:1.7;">你是「工作流的定义者」。你定规则，Agent 来跑。你写的是 SOP，它当你的执行者。</p>
+        </div>
+        <div class="light-box" style="text-align:left;padding:clamp(1.2rem,2vw,2rem);">
+          <p style="font-weight:700;font-size:var(--body-size);margin-bottom:0.6rem;">你要做的就三件事：</p>
+          <p style="font-size:var(--body-size);color:var(--text-secondary);line-height:2.2;">
+            1. 写提示词 → Agent 的操作手册<br/>
+            2. 写 CLAUDE.md → 项目的规矩<br/>
+            3. 装 Skill → 给 Agent 配专业工具
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════  5. 写提示词  ══════════════ -->
+<section class="slide content-slide">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="section-num">03</span>
+      <h2>第一步：写好提示词 — Agent 的「操作手册」</h2>
+    </div>
+    <p class="slide-subtitle reveal">你不是在"聊天"，你是在"写标准操作流程"。三个模块：边界 + 标准 + 步骤</p>
+    <div class="two-col reveal">
+      <div class="code-block">
+        <p style="color:rgba(255,255,255,0.3);font-size:var(--small-size);margin-bottom:0.5rem;">提示词的三个核心模块</p>
+        <p style="color:rgba(255,255,255,0.5);"># 边界：什么能做、什么不能做</p>
+        <p class="hl">⛔ 仅限 29 座万亿城市</p>
+        <p class="hl">⛔ 日报仅采集当日内容</p>
+        <p style="color:rgba(255,255,255,0.5);margin-top:0.6rem;"># 标准：怎样算合格（必须可验证）</p>
+        <p style="color:rgba(255,255,255,0.7);">· 每条通过 6 层验证</p>
+        <p style="color:rgba(255,255,255,0.7);">· 每条出 3 版洞察（A/B/C）</p>
+        <p style="color:rgba(255,255,255,0.7);">· 每板块至少 1 条 .gov.cn</p>
+        <p style="color:rgba(255,255,255,0.5);margin-top:0.6rem;"># 步骤：按什么顺序执行</p>
+        <p style="color:rgba(255,255,255,0.7);">Step 1 搜索 → 2 验证 → 3 构建 → 4 校验 → 5 输出</p>
+      </div>
+      <div>
+        <div class="w-card blue-accent" style="margin-bottom:0.6rem;">
+          <p style="font-weight:600;font-size:var(--body-size);">1. 边界比能力重要</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">告诉它什么不能做，比告诉它做什么更能防错。</p>
+        </div>
+        <div class="w-card blue-accent" style="margin-bottom:0.6rem;">
+          <p style="font-weight:600;font-size:var(--body-size);">2. 标准要可验证</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">"质量好"不可验证。"每条 120 字"可以。</p>
+        </div>
+        <div class="w-card blue-accent" style="margin-bottom:0.6rem;">
+          <p style="font-weight:600;font-size:var(--body-size);">3. 步骤可中断可检查</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">每步有明确输出物，出问题知道卡哪。</p>
+        </div>
+        <div class="w-card blue-accent">
+          <p style="font-weight:600;font-size:var(--body-size);">4. 错误案例是最好的素材</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">每发现一个错，加一条规则。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════  6. 提示词进化  ══════════════ -->
+<section class="slide content-slide">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="section-num">04</span>
+      <h2>一个提示词的进化史：从 29 行到 200+ 行</h2>
+    </div>
+    <p class="slide-subtitle reveal">提示词不是一次写好的，是用了 28 次、每次加一条规则，慢慢"长"出来的</p>
+    <div class="three-col reveal" style="margin-bottom:0.8rem;">
+      <div class="prompt-card">
+        <p class="pc-ver" style="color:var(--text-tertiary);">V1 · 基础框架</p>
+        <p class="pc-what">四大维度 + site: 限定</p>
+        <p class="pc-how">"你是情报分析师，从这些网站找信息，分四类整理"。29 行。</p>
+      </div>
+      <div class="prompt-card">
+        <p class="pc-ver" style="color:var(--sky);">V2 · 质量闸门</p>
+        <p class="pc-what">6 层验证 + 29 城白名单</p>
+        <p class="pc-how">发现洛阳（非万亿城市）被收录，硬编码白名单和信源评分体系。</p>
+      </div>
+      <div class="prompt-card">
+        <p class="pc-ver" style="color:var(--sky);">V3 · 纠错机制</p>
+        <p class="pc-what">日期校验 + 机构名 + 禁用词</p>
+        <p class="pc-how">发现"科技委写成了科委"，加入硬约束和自检清单。</p>
+      </div>
+    </div>
+    <div class="two-col reveal" style="gap:clamp(0.8rem,1.4vw,1.5rem);">
+      <div class="prompt-card">
+        <p class="pc-ver" style="color:var(--blue);">V4 · 搜索重构</p>
+        <p class="pc-what">业务实义词取代抽象标签</p>
+        <p class="pc-how">搜"概念验证中心""揭榜挂帅"等实义词，命中率从 30% 跳到 80%。</p>
+      </div>
+      <div class="prompt-card">
+        <p class="pc-ver" style="color:var(--blue);">V5 · Agent 原生</p>
+        <p class="pc-what">双重 WebFetch + 触发词 + 零打扰</p>
+        <p class="pc-how">发现 URL 可能编造，加入 Step 2.5+4.5 双重验证。固化"出日报"触发词。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════  7. CLAUDE.md  ══════════════ -->
+<section class="slide content-slide">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="section-num">05</span>
+      <h2>第二步：CLAUDE.md — 项目的规矩，写一次管一辈子</h2>
+    </div>
+    <p class="slide-subtitle reveal">放项目根目录，Agent 每次打开自动加载。定义优先级、触发词、工作流</p>
+    <div class="two-col reveal">
+      <div class="code-block">
+        <p style="color:rgba(255,255,255,0.3);font-size:var(--small-size);margin-bottom:0.4rem;">CLAUDE.md 核心结构</p>
+        <p class="hl">## Priority 0: 真实性（不可侵犯）</p>
+        <p style="color:rgba(255,255,255,0.7);">1. 每条 URL 必须 WebFetch 验证</p>
+        <p style="color:rgba(255,255,255,0.7);">2. 严禁捏造 URL</p>
+        <p style="color:rgba(255,255,255,0.7);">3. 无法验证 → 直接丢弃</p>
+        <p class="hl" style="margin-top:0.5rem;">## Priority 1: 零打扰（全自动）</p>
+        <p style="color:rgba(255,255,255,0.7);">⛔ 绝对禁止询问 Yes/No</p>
+        <p class="hl" style="margin-top:0.5rem;">## Agent 工作流</p>
+        <p style="color:rgba(255,255,255,0.7);">触发词: 出日报 / 出周报 / 出月报</p>
+        <p style="color:rgba(255,255,255,0.7);">Step 1-6: 搜→验→写→校→出→发</p>
+      </div>
+      <div>
+        <div class="w-card blue-accent" style="margin-bottom:0.6rem;">
+          <p style="font-weight:600;font-size:var(--body-size);">优先级不能让步</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">不能为了凑够 8 条（P3）去编 URL（违反 P0）。高优先级是硬底线。</p>
+        </div>
+        <div class="w-card blue-accent" style="margin-bottom:0.6rem;">
+          <p style="font-weight:600;font-size:var(--body-size);">触发词机制</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">"出日报""出周报"→ Agent 自动启动对应全套流程。三个字触发。</p>
+        </div>
+        <div class="w-card blue-accent" style="margin-bottom:0.6rem;">
+          <p style="font-weight:600;font-size:var(--body-size);">跨机器一致</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">CLAUDE.md 跟着 Git 走。任何人 clone 后打开 CC，行为完全一样。</p>
+        </div>
+        <div class="light-box">
+          <p style="font-weight:600;font-size:var(--body-size);">提示词 = 操作手册<br/>CLAUDE.md = 项目宪法</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════  8. 拆解工作流  ══════════════ -->
+<section class="slide content-slide">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="section-num">06</span>
+      <h2>第三步：把大任务拆成 Agent 能执行的小步骤</h2>
+    </div>
+    <p class="slide-subtitle reveal">"做一份日报"太模糊。拆成 6 步，每步有输入有输出，卡哪步一看就知道</p>
+    <div class="two-col reveal">
+      <div class="step-list">
+        <div class="step-item"><div class="step-num">1</div><div class="step-content"><h4>读规则</h4><p>加载提示词 + CLAUDE.md，知道搜什么、标准是什么</p></div></div>
+        <div class="step-item"><div class="step-num">2</div><div class="step-content"><h4>WebSearch 全网搜索</h4><p>CC 自带工具调搜索引擎，4 维度 × 15-20 次，返回标题+摘要+URL</p></div></div>
+        <div class="step-item"><div class="step-num">2.5</div><div class="step-content"><h4>WebFetch 逐条验证</h4><p>打开每个 URL：能访问？标题匹配？数据准确？不通过就丢</p></div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-content"><h4>写 JSON</h4><p>通过验证的写成结构化数据，含标题、日期、摘要、3 版洞察</p></div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-content"><h4>自动校验</h4><p>跑校验脚本 → 有错自己改 → 再验 → 直到零错误</p></div></div>
+        <div class="step-item"><div class="step-num">5-6</div><div class="step-content"><h4>出 PDF + 分发</h4><p>Chrome 渲染 → 发到桌面 → Git 提交</p></div></div>
+      </div>
+      <div>
+        <div class="w-card blue-accent" style="margin-bottom:0.6rem;">
+          <p style="font-weight:600;font-size:var(--body-size);">1. 每步有输入有输出</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">Step 2 出搜索结果列表，Step 3 出 JSON。中间插 2.5 做质量把关。</p>
+        </div>
+        <div class="w-card blue-accent" style="margin-bottom:0.6rem;">
+          <p style="font-weight:600;font-size:var(--body-size);">2. 验证步骤不能省</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">少一步验证 = 埋一颗雷。没有 2.5，URL 可能全是编的。</p>
+        </div>
+        <div class="w-card blue-accent">
+          <p style="font-weight:600;font-size:var(--body-size);">3. 顺序就是质量防线</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">把验证插在容易出错的环节后面，错误在源头就被拦住。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════  9. Skill  ══════════════ -->
+<section class="slide content-slide">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="section-num">07</span>
+      <h2>第四步：Skill — 给 Agent「装插件」</h2>
+    </div>
+    <p class="slide-subtitle reveal">Agent 自带通用能力。遇到专业需求，装个 Skill 就行了</p>
+    <div class="three-col reveal" style="margin-bottom:1rem;">
+      <div class="w-card" style="border-top:3px solid #7c3aed;text-align:center;">
+        <span class="tag skill">文档处理</span>
+        <p style="font-weight:600;font-size:var(--body-size);margin:0.4rem 0;">PDF Viewer</p>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);line-height:1.6;">交互式查看、批注、文本提取。用于预览生成的日报 PDF。</p>
+      </div>
+      <div class="w-card" style="border-top:3px solid #7c3aed;text-align:center;">
+        <span class="tag skill">演示文稿</span>
+        <p style="font-weight:600;font-size:var(--body-size);margin:0.4rem 0;">Frontend Slides</p>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);line-height:1.6;">零依赖 HTML 幻灯片。这份 PPT 就是 Agent 调用这个 Skill 生成的。</p>
+      </div>
+      <div class="w-card" style="border-top:3px solid #7c3aed;text-align:center;">
+        <span class="tag skill">数据分析</span>
+        <p style="font-weight:600;font-size:var(--body-size);margin:0.4rem 0;">BigQuery</p>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);line-height:1.6;">Agent 直接写 SQL 查数据库、出分析报告。</p>
+      </div>
+    </div>
+    <div class="reveal" style="max-width:75%;margin:0 auto;">
+      <div class="light-box" style="text-align:left;">
+        <p style="font-weight:600;font-size:var(--body-size);">Skill 的本质：把专业能力封装成 Agent 能调用的工具。任何重复性专业工作 → 封装为 Skill → Agent 即获该领域能力。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════  10. Codex vs CC  ══════════════ -->
+<section class="slide content-slide">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="section-num">08</span>
+      <h2>Codex vs Claude Code：怎么选 Agent</h2>
+    </div>
+    <p class="slide-subtitle reveal">两个主流 Agent，定位完全不同。选对工具，事半功倍</p>
+    <div class="agent-compare reveal" style="margin-bottom:0.8rem;">
+      <div class="agent-card codex-card">
+        <div class="agent-icon">OpenAI Codex</div>
+        <p class="agent-role">「大脑」— 推理与生成引擎</p>
+        <ul class="agent-strengths">
+          <li>顶级代码理解和生成，复杂推理强</li>
+          <li>云端沙箱执行，环境隔离</li>
+          <li>丰富的 API/SDK，适合嵌入现有系统</li>
+          <li>擅长：架构设计、代码重构、Bug 定位</li>
+        </ul>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);margin-top:0.3rem;">最适合：以写代码为主的开发任务</p>
+      </div>
+      <div class="agent-card cc-card">
+        <div class="agent-icon">Claude Code</div>
+        <p class="agent-role">「双手」— 执行与编排引擎</p>
+        <ul class="agent-strengths">
+          <li>终端原生，直接操作本地文件</li>
+          <li>Shell + Python + Git 全流程</li>
+          <li>CLAUDE.md 项目级持久记忆</li>
+          <li>擅长：多步骤编排、文件操作、自动化流水线</li>
+        </ul>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);margin-top:0.3rem;">最适合：端到端自动化工作流</p>
+      </div>
+    </div>
+    <div class="two-col reveal">
+      <div class="light-box" style="text-align:left;">
+        <p style="font-weight:700;font-size:var(--body-size);margin-bottom:0.4rem;">本项目为什么选 CC</p>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);line-height:1.8;">
+          需要大量文件读写（JSON/HTML/PDF）<br/>
+          需要跑 Python 脚本、Chrome 渲染<br/>
+          需要多步骤编排（搜→验→写→校→出）<br/>
+          CLAUDE.md 提供项目记忆 + 触发词<br/>
+          拖文件夹进去说三个字就完事
+        </p>
+      </div>
+      <div class="light-box" style="text-align:left;">
+        <p style="font-weight:700;font-size:var(--body-size);margin-bottom:0.4rem;">你怎么选</p>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);line-height:1.8;">
+          写代码为主 → Codex<br/>
+          操作文件、跑脚本、编排流程 → CC<br/>
+          也可以两者结合：Codex 当脑 + CC 当手<br/>
+          <strong>没有万能工具，只有适合你工作流的工具</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════  11. 迭代方法论  ══════════════ -->
+<section class="slide content-slide">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="section-num">09</span>
+      <h2>迭代方法论：发现错误 → 改规则 → 永久修复</h2>
+    </div>
+    <p class="slide-subtitle reveal">传统开发修 Bug 改代码。Agent 时代修 Bug 是改提示词——改一次，永不再犯</p>
+    <div class="two-col reveal">
+      <div class="step-list">
+        <div class="step-item" style="border-left:3px solid var(--text-tertiary);"><div class="step-num" style="background:var(--text-tertiary);">1</div><div class="step-content"><h4>"洛阳不是万亿城市"</h4><p>加 29 城白名单，搜索阶段即过滤</p></div></div>
+        <div class="step-item" style="border-left:3px solid var(--sky);"><div class="step-num" style="background:var(--sky);">2</div><div class="step-content"><h4>"日报周报有重复"</h4><p>三层去重：精确匹配→相似度→指纹</p></div></div>
+        <div class="step-item" style="border-left:3px solid var(--sky);"><div class="step-num" style="background:var(--sky);">3</div><div class="step-content"><h4>"搜'管理办法'命中率低"</h4><p>改用业务实义词，命中率 30%→80%</p></div></div>
+        <div class="step-item" style="border-left:3px solid var(--blue);"><div class="step-num" style="background:var(--blue);">4</div><div class="step-content"><h4>"URL 可能是编的"</h4><p>双重 WebFetch 验证（Step 2.5+4.5）</p></div></div>
+        <div class="step-item" style="border-left:3px solid var(--blue);"><div class="step-num" style="background:var(--blue);">5</div><div class="step-content"><h4>"老问 Yes/No 太烦"</h4><p>CLAUDE.md 固化零打扰规则</p></div></div>
+      </div>
+      <div>
+        <div class="w-card blue-accent" style="margin-bottom:0.6rem;">
+          <p style="font-weight:600;font-size:var(--body-size);">不是修一条数据，是修一个规则</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">发现洛阳 → 不是删掉它，是加白名单 → 所有非万亿城市永久过滤。</p>
+        </div>
+        <div class="w-card blue-accent" style="margin-bottom:0.6rem;">
+          <p style="font-weight:600;font-size:var(--body-size);">提示词 + 校验脚本 = 双保险</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">提示词告诉 Agent 怎么做，脚本验证它做对没有。两层配合。</p>
+        </div>
+        <div class="w-card blue-accent" style="margin-bottom:0.6rem;">
+          <p style="font-weight:600;font-size:var(--body-size);">28 次提交，0 次改数据</p>
+          <p style="font-size:var(--small-size);color:var(--text-secondary);">全是改提示词、CLAUDE.md、校验规则。100 份报告也不会有同类错误。</p>
+        </div>
+        <div class="blue-box">
+          <p style="font-size:var(--body-size);font-weight:600;">Agent 的迭代不是修 Bug，是进化规则</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════  12. 三阶段  ══════════════ -->
+<section class="slide content-slide">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="section-num">10</span>
+      <h2>从手工到 Agent：三阶段真实演进</h2>
+    </div>
+    <p class="slide-subtitle reveal">同一份日报，三阶段对比。效率提升 20 倍，成本 ¥25/月</p>
+    <div class="phase-compare reveal" style="margin-bottom:1rem;">
+      <div class="phase-col p1">
+        <p class="phase-label">PHASE 1 · 全手工</p>
+        <ul>
+          <li>每天翻 50+ 网站</li>
+          <li>复制粘贴到 Word</li>
+          <li>人眼判断、手动排版</li>
+          <li>错误率 ~15%，无去重</li>
+        </ul>
+        <p style="font-size:var(--small-size);color:var(--text-tertiary);margin-top:0.5rem;"><strong>3-4 小时</strong></p>
+      </div>
+      <div class="phase-col p2">
+        <p class="phase-label">PHASE 2 · 半自动</p>
+        <ul>
+          <li>接其他模型 API 搜索</li>
+          <li>JSON 模板 + 脚本生成 PDF</li>
+          <li>URL 经常编造，需人工核实</li>
+          <li>基础提示词，人离不开</li>
+        </ul>
+        <p style="font-size:var(--small-size);color:var(--text-tertiary);margin-top:0.5rem;"><strong>1-2 小时</strong></p>
+      </div>
+      <div class="phase-col p3">
+        <p class="phase-label">PHASE 3 · Agent 全自动</p>
+        <ul>
+          <li>Agent 自主调用 WebSearch + WebFetch</li>
+          <li>6 层验证，3 版洞察自动出</li>
+          <li>三层去重，格式零错误</li>
+          <li>一句话触发，人不用管</li>
+        </ul>
+        <p style="font-size:var(--small-size);color:var(--text-tertiary);margin-top:0.5rem;"><strong>10-15 分钟</strong></p>
+      </div>
+    </div>
+    <div class="stat-row reveal">
+      <div class="stat-card"><p class="num" style="color:var(--text-tertiary);">3-4h</p><p class="label">Phase 1</p></div>
+      <div class="stat-card"><p class="num" style="color:var(--sky);">1-2h</p><p class="label">Phase 2</p></div>
+      <div class="stat-card"><p class="num" style="color:var(--blue);">10-15m</p><p class="label">Phase 3</p></div>
+      <div class="stat-card"><p class="num" style="color:var(--blue);">20×</p><p class="label">效率提升</p></div>
+      <div class="stat-card"><p class="num" style="color:var(--blue);">&yen;25/月</p><p class="label">AI 月成本</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════  13. 你可以开始  ══════════════ -->
+<section class="slide content-slide">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="section-num">11</span>
+      <h2>你现在就可以开始</h2>
+    </div>
+    <p class="slide-subtitle reveal">不需要学代码，不需要学工具。你会描述自己的工作流程就够了</p>
+    <div class="three-col reveal" style="margin-bottom:1rem;">
+      <div class="w-card" style="text-align:center;">
+        <p style="font-family:var(--font-num);font-size:var(--h2-size);font-weight:800;color:var(--blue);margin-bottom:0.3rem;">01</p>
+        <p style="font-weight:600;font-size:var(--body-size);margin-bottom:0.3rem;">找个重复性任务</p>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);">每天/每周要做的事。日报、周报、数据汇总——任何"每次做都一样"的工作。</p>
+      </div>
+      <div class="w-card" style="text-align:center;">
+        <p style="font-family:var(--font-num);font-size:var(--h2-size);font-weight:800;color:var(--blue);margin-bottom:0.3rem;">02</p>
+        <p style="font-weight:600;font-size:var(--body-size);margin-bottom:0.3rem;">写第一版提示词</p>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);">你是谁、要干嘛、不能干嘛、怎么算合格。十几行就够了。</p>
+      </div>
+      <div class="w-card" style="text-align:center;">
+        <p style="font-family:var(--font-num);font-size:var(--h2-size);font-weight:800;color:var(--blue);margin-bottom:0.3rem;">03</p>
+        <p style="font-weight:600;font-size:var(--body-size);margin-bottom:0.3rem;">用一次改一次</p>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);">发现一个问题加一条规则。用 10 次成熟，用 20 次几乎零错误。</p>
+      </div>
+    </div>
+    <div class="two-col reveal" style="gap:clamp(0.8rem,1.4vw,1.5rem);">
+      <div class="light-box" style="text-align:left;">
+        <p style="font-weight:600;font-size:var(--body-size);margin-bottom:0.5rem;">启动清单</p>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);line-height:2.2;">
+          1. 装 Claude Code<br/>
+          2. 接 API（DeepSeek / OpenAI / Anthropic）<br/>
+          3. 建项目文件夹 → 写提示词和 CLAUDE.md<br/>
+          4. 装需要的 Skill<br/>
+          5. 拖入 CC → 开口说你要什么
+        </p>
+      </div>
+      <div class="light-box" style="text-align:left;">
+        <p style="font-weight:600;font-size:var(--body-size);margin-bottom:0.5rem;">关键心态</p>
+        <p style="font-size:var(--small-size);color:var(--text-secondary);line-height:2.2;">
+          你不是在"用工具"<br/>
+          你是在"训练一个助手"<br/>
+          给它规则，它会执行<br/>
+          给它反馈，它会进步<br/>
+          用久了它会越来越懂你
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════  14. Thank You  ══════════════ -->
+<section class="slide thanks-slide">
+  <h1 class="reveal">开始你的第一个 Agent</h1>
+  <div class="thanks-divider reveal"></div>
+  <p class="reveal" style="font-size:var(--h3-size);">提示词是源码 · CLAUDE.md 是宪法 · Skill 是超能力</p>
+  <p class="reveal" style="margin-top:1.2rem;">
+    选择适合你的 Agent · 定义你的工作流 · 让它为你干活
+  </p>
+  <p class="reveal" style="margin-top:2rem;font-size:var(--small-size);">
+    Claude Code + DeepSeek V4 Pro &ensp;/&ensp; 28 次迭代 · 从 3 小时到 10 分钟
+  </p>
+</section>
+
+<!-- ══════════════  JS  ══════════════ -->
+<script>
+class SlidePresentation {
+  constructor() {
+    this.slides=document.querySelectorAll('.slide');
+    this.currentSlide=0;this.totalSlides=this.slides.length;
+    this.progressBar=document.getElementById('progressBar');
+    this.navDots=document.getElementById('navDots');
+    this.init();
+  }
+  init(){
+    this.buildNavDots();this.setupIntersectionObserver();
+    this.setupKeyboardNav();this.setupWheelNav();this.setupTouchNav();
+    this.updateProgress();
+  }
+  buildNavDots(){
+    this.navDots.innerHTML='';
+    for(let i=0;i<this.totalSlides;i++){
+      let d=document.createElement('button');
+      d.className='nav-dot';d.setAttribute('aria-label','Slide '+(i+1));
+      d.addEventListener('click',()=>this.goTo(i));
+      this.navDots.appendChild(d);
+    }
+    this.updateDots();
+  }
+  setupIntersectionObserver(){
+    let o=new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.classList.add('visible');
+          let idx=Array.from(this.slides).indexOf(e.target);
+          if(idx>=0){this.currentSlide=idx;this.updateDots();this.updateProgress();}
+        }
+      });
+    },{root:null,threshold:0.4});
+    this.slides.forEach(s=>o.observe(s));
+  }
+  setupKeyboardNav(){
+    document.addEventListener('keydown',(e)=>{
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();this.next();}
+      else if(e.key==='ArrowUp'||e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();this.prev();}
+      else if(e.key==='Home'){e.preventDefault();this.goTo(0);}
+      else if(e.key==='End'){e.preventDefault();this.goTo(this.totalSlides-1);}
+    });
+  }
+  setupWheelNav(){
+    let t;
+    document.addEventListener('wheel',(e)=>{
+      e.preventDefault();
+      if(t)return;
+      t=setTimeout(()=>{t=null;},800);
+      if(e.deltaY>30)this.next();else if(e.deltaY<-30)this.prev();
+    },{passive:false});
+  }
+  setupTouchNav(){
+    let s=0;
+    document.addEventListener('touchstart',(e)=>{s=e.touches[0].clientY;});
+    document.addEventListener('touchend',(e)=>{
+      let d=s-e.changedTouches[0].clientY;
+      if(Math.abs(d)>50){d>0?this.next():this.prev();}
+    });
+  }
+  goTo(i){if(i>=0&&i<this.totalSlides)this.slides[i].scrollIntoView({behavior:'smooth'});}
+  next(){this.goTo(this.currentSlide+1);}
+  prev(){this.goTo(this.currentSlide-1);}
+  updateDots(){this.navDots.querySelectorAll('.nav-dot').forEach((d,i)=>d.classList.toggle('active',i===this.currentSlide));}
+  updateProgress(){this.progressBar.style.width=((this.currentSlide+1)/this.totalSlides*100)+'%';}
+}
+new SlidePresentation();
+</script>
+</body>
+</html>
