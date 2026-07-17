@@ -189,6 +189,8 @@ def main():
                         help="仅采集信源+输出搜索简报（供 Claude Code 搜索+写作）")
     parser.add_argument("--from-json", type=str, default="",
                         help="从预写的报告 JSON 文件生成 HTML/PDF（跳过 AI 调用）")
+    parser.add_argument("--issue", type=int, default=0,
+                        help="指定期号（如 7 表示第7期）。0=需要用户在对话中指定")
     args = parser.parse_args()
 
     print("=" * 60)
@@ -254,8 +256,8 @@ def main():
 
         # 生成 HTML → PDF
         from generate_html_pdf import build_daily_html, html_to_pdf
-        from generate_html_pdf import get_issue_numbers
-        issue, total = get_issue_numbers()
+        issue = args.issue
+        total = issue  # 总期数 = 当期期号
         date_cn = today.strftime("%Y年%m月%d日")
         html = build_daily_html(data, date_cn, issue, total)
         pdf_path = html_to_pdf(html, today_pdf)

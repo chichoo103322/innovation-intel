@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(all:*)",
+      "Bash(all:*)",
+      "Write(all:*)",
+      "Edit(all:*)",
+      "Read(all:*)",
+      "NotebookEdit(all:*)",
+      "WebSearch(all:*)",
+      "Skill(all:*)",
+      "TaskCreate(always)",
+      "TaskUpdate(always)",
+      "Agent(all:*)"
+    ]
+  }
+}

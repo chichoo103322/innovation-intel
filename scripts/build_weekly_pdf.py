@@ -4,7 +4,7 @@ import sys, json
 from pathlib import Path
 from datetime import datetime
 
-PROJECT_DIR = Path("/Users/jzxzhou/innovation-intel")
+PROJECT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_DIR / "scripts"))
 
 from generate_html_pdf import html_to_pdf, get_issue_numbers
@@ -301,7 +301,7 @@ def main():
 
     html = build_weekly_html(data, date_cn, issue, total)
 
-    output_pdf = Path("/Users/jzxzhou/Desktop/创新情报/周报/创新常州·对标快讯_周报_20260706.pdf")
+    output_pdf = Path.home() / "Desktop/创新情报/周报/创新常州·对标快讯_周报_20260706.pdf"
     output_pdf.parent.mkdir(parents=True, exist_ok=True)
 
     result = html_to_pdf(html, output_pdf)

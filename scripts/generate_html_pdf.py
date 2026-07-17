@@ -173,13 +173,13 @@ WEEKLY_SYSTEM_PROMPT = """你是一位资深科技创新情报分析师，服务
 以上5个方向搜索时额外加入关键词"算力+硬件+场景+生态""AI产业链""创新链""全链条"，构建完整产业链视野。
 
 ═══════════════════════════════════════════════════════════
-创新洞察撰写规范（每条出3版洞察，方案A/B/C各120-160字，用户择优选用）
+创新洞察撰写规范（每条出3版洞察，a/b/c各120-160字，用户择优选用）
 ═══════════════════════════════════════════════════════════
 
-每条信息必须撰写3版不同角度的创新洞察，标注为方案A、方案B、方案C：
-- **方案A · 行动建议型**：以"建议常州......"开篇，给出具体可操作的政策建议（由哪个部门牵头、对接什么资源、分几步走），扣合三名工程/双高协同/本地产业园区等政策抓手。
-- **方案B · 竞争策略型**：以周边万亿城市（必须点名苏州/无锡/南京/南通中至少2个）的同类布局为镜鉴，分析常州的差异化空间和紧迫性，切忌"值得借鉴"空话。
-- **方案C · 前瞻布局型**：着眼3-5年趋势，分析该信息预示的产业变革方向，指出常州应提前布局的技术/人才/基础设施，关联五大产业中至少1个的未来演进。
+每条信息必须撰写3版不同角度的创新洞察，标注为a、b、c：
+- **a. 行动建议型**：以"建议常州......"开篇，给出具体可操作的政策建议（由哪个部门牵头、对接什么资源、分几步走），扣合三名工程/双高协同/本地产业园区等政策抓手。
+- **b. 竞争策略型**：以周边万亿城市（必须点名苏州/无锡/南京/南通中至少2个）的同类布局为镜鉴，分析常州的差异化空间和紧迫性，切忌"值得借鉴"空话。
+- **c. 前瞻布局型**：着眼3-5年趋势，分析该信息预示的产业变革方向，指出常州应提前布局的技术/人才/基础设施，关联五大产业中至少1个的未来演进。
 
 每版洞察必须同时满足以下要求：
 ★ 1. **对标五大产业**：关联AIDC/具身智能/未来存储/未来能源/液冷至少一个
@@ -220,9 +220,9 @@ WEEKLY_SYSTEM_PROMPT = """你是一位资深科技创新情报分析师，服务
           "date": "YYYY.M.D（事件实际发生日期，严禁填网页发布日期）",
           "summary": "80-120字。格式：X月X日，XX主体+事件+关键数据。政策板块首句必须为'X月X日，XX市印发《XX方案》，......'",
           "insight": [
-            "方案A：行动建议型——建议常州......（120-160字，含牵头部门+对接资源）",
-            "方案B：竞争策略型——对比XX城市......（120-160字，点名至少2个周边城市）",
-            "方案C：前瞻布局型——着眼3-5年......（120-160字，关联五大产业未来演进）"
+            "a. 行动建议型——建议常州......（120-160字，含牵头部门+对接资源）",
+            "b. 竞争策略型——对比XX城市......（120-160字，点名至少2个周边城市）",
+            "c. 前瞻布局型——着眼3-5年......（120-160字，关联五大产业未来演进）"
           ],
           "source": "来源机构全称",
           "url": "原文URL（必填，从素材复制）"
@@ -370,7 +370,7 @@ WEEKLY_USER_PROMPT_TEMPLATE = """今天是{today_cn}。请联网搜索本周（{
 ═══════════════════════════════════════════════════════════
 创新洞察自检（每条必查，输出前逐项打勾）
 ═══════════════════════════════════════════════════════════
-□ 1. 是否每条信息出了3版洞察（方案A行动建议型 + 方案B竞争策略型 + 方案C前瞻布局型）？
+□ 1. 是否每条信息出了3版洞察（a.行动建议型 + b.竞争策略型 + c.前瞻布局型）？
 □ 2. 三版洞察是否从不同角度切入、内容不雷同？
 □ 3. 是否关联了常州AIDC/具身智能/未来存储/未来能源/液冷五大产业中至少一个？
 □ 2. 是否结合了常州既有产业基础（新能源/高端装备/新能源汽车等）？
@@ -697,10 +697,10 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
             source_link_html = ""
             if url:
                 source_link_html = f'<p class="item-source-link">信息来源：<a href="{url}">{url}</a></p>'
-            labels = ["方案A", "方案B", "方案C"]
+            labels = ["A", "B", "C"]
             insight_blocks = ""
             for i, ins in enumerate(insights):
-                label = f"创新洞察 · {labels[i]}：" if len(insights) > 1 else "创新洞察："
+                label = f"创新洞察{labels[i]}：" if len(insights) > 1 else "创新洞察："
                 insight_blocks += f"""
           <div class="item-insight">
             <span class="insight-label">{label}</span>
@@ -728,7 +728,7 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
 <style>
     @page {{
     size: A4;
-    margin: 8mm 10mm 10mm 10mm;
+    margin: 6mm 8mm 8mm 8mm;
     @top-center {{
     content: element(header);
     }}
@@ -756,14 +756,14 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
 
     body {{
     font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
-    font-size: 8pt; line-height: 1.45; color: var(--text);
+    font-size: 8.5pt; line-height: 1.5; color: var(--text);
     }}
 
     /* ── Cover: compact blue header block ── */
     .cover {{
     background: linear-gradient(135deg, #0a2655 0%, #1e50b4 100%);
-    padding: 10px 18px 8px 18px;
-    margin-bottom: 8px;
+    padding: 8px 16px 6px 16px;
+    margin-bottom: 6px;
     border-radius: 3px;
     color: #fff;
     }}
@@ -790,14 +790,14 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
     font-size: 6.5pt; color: var(--blue);
     display: flex; justify-content: space-between;
     border-bottom: 0.5px solid var(--light-gray);
-    padding-bottom: 2px; margin-bottom: 2px;
+    padding-bottom: 1px; margin-bottom: 1px;
     }}
 
     /* ── Overview ── */
     .overview {{
     font-size: 8pt; color: var(--text-secondary);
-    line-height: 1.45; margin-bottom: 4px;
-    padding: 4px 8px;
+    line-height: 1.45; margin-bottom: 3px;
+    padding: 3px 6px;
     background: var(--bg);
     border-radius: 2px;
     text-align: justify;
@@ -805,8 +805,8 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
 
     /* ── Section titles ── */
     .section-title {{
-    font-size: 9pt; font-weight: 700; color: var(--blue);
-    margin: 6px 0 2px 0; padding-bottom: 0;
+    font-size: 9.5pt; font-weight: 700; color: var(--blue);
+    margin: 4px 0 1px 0; padding-bottom: 0;
     }}
     .section-title::before {{
     content: '●'; color: var(--blue); margin-right: 5px; font-size: 9pt;
@@ -814,12 +814,12 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
 
     /* ── News items ── */
     .news-item {{
-    margin-bottom: 3px; padding-bottom: 2px;
+    margin-bottom: 2px; padding-bottom: 0;
     }}
 
     .item-title {{
-    font-size: 8.5pt; font-weight: 600; color: var(--blue);
-    margin-bottom: 1px; line-height: 1.35;
+    font-size: 9pt; font-weight: 600; color: var(--blue);
+    margin-bottom: 0; line-height: 1.35;
     }}
     .item-title::before {{
     content: '▸'; color: var(--accent); margin-right: 4px; font-size: 8pt;
@@ -830,28 +830,28 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
     }}
 
     .item-summary {{
-    font-size: 7.5pt; color: var(--text-secondary);
-    line-height: 1.45; margin-bottom: 2px;
+    font-size: 8pt; color: var(--text-secondary);
+    line-height: 1.45; margin-bottom: 1px;
     text-align: justify;
     }}
 
     .item-insight {{
     background: var(--accent-bg);
     border-radius: 2px;
-    padding: 3px 8px; margin: 2px 0 2px 0;
+    padding: 2px 6px; margin: 1px 0 1px 0;
     }}
     .item-insight p {{
     font-size: 8.5pt; color: #6b4f10;
     line-height: 1.55; display: inline;
     }}
     .insight-label {{
-    font-size: 9.5pt; font-weight: 700; color: var(--accent);
+    font-size: 9pt; font-weight: 700; color: var(--accent);
     letter-spacing: 0.5px; margin-right: 3px;
     }}
 
     .item-source {{
     font-size: 6pt; color: #94a3b8; text-align: right;
-    margin-top: 1px;
+    margin-top: 0;
     }}
     .item-source-link {{
     font-size: 6pt; color: #94a3b8; margin-top: 0;
@@ -882,7 +882,7 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
     }}
 
     @media print {{
-    .news-item {{ page-break-inside: avoid; }}
+    .news-item {{ page-break-inside: auto; widows: 2; orphans: 2; }}
     }}
     </style>
 </head>
@@ -955,8 +955,11 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
 
     for s in sections:
         sname = s.get("name", "")
+        s_items = s.get("items", [])
+        if not s_items:
+            continue
         items_html += f'<h2 class="section-title">{sname}</h2>\n'
-        for item in s.get("items", []):
+        for item in s_items:
             title = item.get("title", "")
             date_i = item.get("date", "")
             summary = item.get("summary", "")
@@ -968,10 +971,10 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
             source_link_html = ""
             if url:
                 source_link_html = f'<p class="item-source-link">信息来源：<a href="{url}">{url}</a></p>'
-            labels = ["方案A", "方案B", "方案C"]
+            labels = ["A", "B", "C"]
             insight_blocks = ""
             for i, ins in enumerate(insights):
-                label = f"创新洞察 · {labels[i]}：" if len(insights) > 1 else "创新洞察："
+                label = f"创新洞察{labels[i]}：" if len(insights) > 1 else "创新洞察："
                 insight_blocks += f"""
           <div class="item-insight">
             <span class="insight-label">{label}</span>
@@ -993,7 +996,7 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
 <style>
     @page {{
     size: A4;
-    margin: 8mm 10mm 10mm 10mm;
+    margin: 6mm 8mm 8mm 8mm;
     @top-center {{
     content: element(header);
     }}
@@ -1021,14 +1024,14 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
 
     body {{
     font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
-    font-size: 8pt; line-height: 1.45; color: var(--text);
+    font-size: 8.5pt; line-height: 1.5; color: var(--text);
     }}
 
     /* ── Cover: compact blue header block ── */
     .cover {{
     background: linear-gradient(135deg, #0a2655 0%, #1e50b4 100%);
-    padding: 10px 18px 8px 18px;
-    margin-bottom: 8px;
+    padding: 8px 16px 6px 16px;
+    margin-bottom: 6px;
     border-radius: 3px;
     color: #fff;
     }}
@@ -1055,14 +1058,14 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
     font-size: 6.5pt; color: var(--blue);
     display: flex; justify-content: space-between;
     border-bottom: 0.5px solid var(--light-gray);
-    padding-bottom: 2px; margin-bottom: 2px;
+    padding-bottom: 1px; margin-bottom: 1px;
     }}
 
     /* ── Overview ── */
     .overview {{
     font-size: 8pt; color: var(--text-secondary);
-    line-height: 1.45; margin-bottom: 4px;
-    padding: 4px 8px;
+    line-height: 1.45; margin-bottom: 3px;
+    padding: 3px 6px;
     background: var(--bg);
     border-radius: 2px;
     text-align: justify;
@@ -1070,8 +1073,8 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
 
     /* ── Section titles ── */
     .section-title {{
-    font-size: 9pt; font-weight: 700; color: var(--blue);
-    margin: 6px 0 2px 0; padding-bottom: 0;
+    font-size: 9.5pt; font-weight: 700; color: var(--blue);
+    margin: 4px 0 1px 0; padding-bottom: 0;
     }}
     .section-title::before {{
     content: '●'; color: var(--blue); margin-right: 5px; font-size: 9pt;
@@ -1079,12 +1082,12 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
 
     /* ── News items ── */
     .news-item {{
-    margin-bottom: 3px; padding-bottom: 2px;
+    margin-bottom: 2px; padding-bottom: 0;
     }}
 
     .item-title {{
-    font-size: 8.5pt; font-weight: 600; color: var(--blue);
-    margin-bottom: 1px; line-height: 1.35;
+    font-size: 9pt; font-weight: 600; color: var(--blue);
+    margin-bottom: 0; line-height: 1.35;
     }}
     .item-title::before {{
     content: '▸'; color: var(--accent); margin-right: 4px; font-size: 8pt;
@@ -1095,28 +1098,28 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
     }}
 
     .item-summary {{
-    font-size: 7.5pt; color: var(--text-secondary);
-    line-height: 1.45; margin-bottom: 2px;
+    font-size: 8pt; color: var(--text-secondary);
+    line-height: 1.45; margin-bottom: 1px;
     text-align: justify;
     }}
 
     .item-insight {{
     background: var(--accent-bg);
     border-radius: 2px;
-    padding: 3px 8px; margin: 2px 0 2px 0;
+    padding: 2px 6px; margin: 1px 0 1px 0;
     }}
     .item-insight p {{
     font-size: 8.5pt; color: #6b4f10;
     line-height: 1.55; display: inline;
     }}
     .insight-label {{
-    font-size: 9.5pt; font-weight: 700; color: var(--accent);
+    font-size: 9pt; font-weight: 700; color: var(--accent);
     letter-spacing: 0.5px; margin-right: 3px;
     }}
 
     .item-source {{
     font-size: 6pt; color: #94a3b8; text-align: right;
-    margin-top: 1px;
+    margin-top: 0;
     }}
     .item-source-link {{
     font-size: 6pt; color: #94a3b8; margin-top: 0;
@@ -1147,7 +1150,7 @@ def build_daily_html(data, date_cn: str, issue_no: int = 1, total_no: int = 1) -
     }}
 
     @media print {{
-    .news-item {{ page-break-inside: avoid; }}
+    .news-item {{ page-break-inside: auto; widows: 2; orphans: 2; }}
     }}
     </style>
 </head>
@@ -1260,15 +1263,15 @@ MONTHLY_SYSTEM_PROMPT = """你是一位资深科技创新情报分析师，服�
 5. **液冷技术**：数据中心液冷、浸没式冷却
 
 ═══════════════════════════════════════════════════════════
-创新洞察撰写规范（每条出3版，方案A/B/C各120-160字）
+创新洞察撰写规范（每条出3版，a/b/c各120-160字）
 ═══════════════════════════════════════════════════════════
 
 每条信息必须从3个不同角度撰写洞察：
-- **方案A · 行动建议型**：以"建议常州......"开篇，给出可操作建议（牵头部门+对接资源），扣合三名工程/双高协同/中以常州创新园/科教城。
-- **方案B · 竞争策略型**：点名苏州/无锡/南京/南通中至少2个城市同类布局，分析常州差异化空间和竞争紧迫性。
-- **方案C · 前瞻布局型**：着眼3-5年产业趋势，指出常州应提前布局的技术/人才/基础设施，关联五大产业未来演进。
+- **a. 行动建议型**：以"建议常州......"开篇，给出可操作建议（牵头部门+对接资源），扣合三名工程/双高协同/中以常州创新园/科教城。
+- **b. 竞争策略型**：点名苏州/无锡/南京/南通中至少2个城市同类布局，分析常州差异化空间和竞争紧迫性。
+- **c. 前瞻布局型**：着眼3-5年产业趋势，指出常州应提前布局的技术/人才/基础设施，关联五大产业未来演进。
 
-每版必须包含：①五大产业关联 ②常州企业嫁接 ③政策工具扣合 ④可操作建议（方案A必含牵头部门）。
+每版必须包含：①五大产业关联 ②常州企业嫁接 ③政策工具扣合 ④可操作建议（a.必含牵头部门）。
 
 严禁空话套话、三版雷同、脱离常州实际。
 
@@ -1288,7 +1291,7 @@ MONTHLY_SYSTEM_PROMPT = """你是一位资深科技创新情报分析师，服�
           "title": "标题（政策板块必须含《政策名称》）",
           "date": "YYYY.M.D（事件实际发生日期）",
           "summary": "100-150字。政策板块首句：'X月X日，XX市印发《XX方案》，......'",
-          "insight": ["方案A：行动建议型......", "方案B：竞争策略型......", "方案C：前瞻布局型......"],
+          "insight": ["a. 行动建议型......", "b. 竞争策略型......", "c. 前瞻布局型......"],
           "source": "来源机构全称",
           "url": "原文URL"
         }
@@ -1522,10 +1525,10 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
             source_link_html = ""
             if url:
                 source_link_html = f'<p class="item-source-link">信息来源：<a href="{url}">{url}</a></p>'
-            labels = ["方案A", "方案B", "方案C"]
+            labels = ["A", "B", "C"]
             insight_blocks = ""
             for i, ins in enumerate(insights):
-                label = f"创新洞察 · {labels[i]}：" if len(insights) > 1 else "创新洞察："
+                label = f"创新洞察{labels[i]}：" if len(insights) > 1 else "创新洞察："
                 insight_blocks += f"""
           <div class="item-insight">
             <span class="insight-label">{label}</span>
@@ -1560,7 +1563,7 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
 <style>
     @page {{
     size: A4;
-    margin: 8mm 10mm 10mm 10mm;
+    margin: 6mm 8mm 8mm 8mm;
     @top-center {{
     content: element(header);
     }}
@@ -1588,14 +1591,14 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
 
     body {{
     font-family: "PingFang SC", "STHeiti", "Noto Sans SC", "Heiti SC", "Microsoft YaHei", sans-serif;
-    font-size: 8pt; line-height: 1.45; color: var(--text);
+    font-size: 8.5pt; line-height: 1.5; color: var(--text);
     }}
 
     /* ── Cover: compact blue header block ── */
     .cover {{
     background: linear-gradient(135deg, #0a2655 0%, #1e50b4 100%);
-    padding: 10px 18px 8px 18px;
-    margin-bottom: 8px;
+    padding: 8px 16px 6px 16px;
+    margin-bottom: 6px;
     border-radius: 3px;
     color: #fff;
     }}
@@ -1622,14 +1625,14 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
     font-size: 6.5pt; color: var(--blue);
     display: flex; justify-content: space-between;
     border-bottom: 0.5px solid var(--light-gray);
-    padding-bottom: 2px; margin-bottom: 2px;
+    padding-bottom: 1px; margin-bottom: 1px;
     }}
 
     /* ── Overview ── */
     .overview {{
     font-size: 8pt; color: var(--text-secondary);
-    line-height: 1.45; margin-bottom: 4px;
-    padding: 4px 8px;
+    line-height: 1.45; margin-bottom: 3px;
+    padding: 3px 6px;
     background: var(--bg);
     border-radius: 2px;
     text-align: justify;
@@ -1637,8 +1640,8 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
 
     /* ── Section titles ── */
     .section-title {{
-    font-size: 9pt; font-weight: 700; color: var(--blue);
-    margin: 6px 0 2px 0; padding-bottom: 0;
+    font-size: 9.5pt; font-weight: 700; color: var(--blue);
+    margin: 4px 0 1px 0; padding-bottom: 0;
     }}
     .section-title::before {{
     content: '●'; color: var(--blue); margin-right: 5px; font-size: 9pt;
@@ -1646,12 +1649,12 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
 
     /* ── News items ── */
     .news-item {{
-    margin-bottom: 3px; padding-bottom: 2px;
+    margin-bottom: 2px; padding-bottom: 0;
     }}
 
     .item-title {{
-    font-size: 8.5pt; font-weight: 600; color: var(--blue);
-    margin-bottom: 1px; line-height: 1.35;
+    font-size: 9pt; font-weight: 600; color: var(--blue);
+    margin-bottom: 0; line-height: 1.35;
     }}
     .item-title::before {{
     content: '▸'; color: var(--accent); margin-right: 4px; font-size: 8pt;
@@ -1662,28 +1665,28 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
     }}
 
     .item-summary {{
-    font-size: 7.5pt; color: var(--text-secondary);
-    line-height: 1.45; margin-bottom: 2px;
+    font-size: 8pt; color: var(--text-secondary);
+    line-height: 1.45; margin-bottom: 1px;
     text-align: justify;
     }}
 
     .item-insight {{
     background: var(--accent-bg);
     border-radius: 2px;
-    padding: 3px 8px; margin: 2px 0 2px 0;
+    padding: 2px 6px; margin: 1px 0 1px 0;
     }}
     .item-insight p {{
     font-size: 8.5pt; color: #6b4f10;
     line-height: 1.55; display: inline;
     }}
     .insight-label {{
-    font-size: 9.5pt; font-weight: 700; color: var(--accent);
+    font-size: 9pt; font-weight: 700; color: var(--accent);
     letter-spacing: 0.5px; margin-right: 3px;
     }}
 
     .item-source {{
     font-size: 6pt; color: #94a3b8; text-align: right;
-    margin-top: 1px;
+    margin-top: 0;
     }}
     .item-source-link {{
     font-size: 6pt; color: #94a3b8; margin-top: 0;
@@ -1721,7 +1724,7 @@ def build_monthly_html(data: dict, issue_no: int, total_no: int, date_cn: str) -
     .recs-list li {{ margin-bottom: 4px; }}
 
     @media print {{
-    .news-item {{ page-break-inside: avoid; }}
+    .news-item {{ page-break-inside: auto; widows: 2; orphans: 2; }}
     }}
     </style>
 </head>

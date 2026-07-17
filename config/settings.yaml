@@ -92,4 +92,5 @@ monthly:
   generate_on: "last_day"
 
 # ---- 输出路径 ----
-desktop_output_dir: "/Users/jzxzhou/Desktop/创新情报"
+# desktop_output_dir 留空则自动使用 ~/Desktop/创新情报（适用于任何用户）
+desktop_output_dir: ""
