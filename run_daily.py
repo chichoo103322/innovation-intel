@@ -240,10 +240,14 @@ def main():
         from fact_check import fact_check_against_sources, print_fact_check_report
         crawled_cache = CACHE_DIR / "crawled_sources_daily.json"
         if crawled_cache.exists():
-            with open(crawled_cache, "r", encoding="utf-8") as f:
-                crawled_data = json.load(f)
-            fc_result = fact_check_against_sources(data, crawled_data)
-            print_fact_check_report(fc_result)
+            cache_date = datetime.fromtimestamp(crawled_cache.stat().st_mtime).date()
+            if cache_date == today.date():
+                with open(crawled_cache, "r", encoding="utf-8") as f:
+                    crawled_data = json.load(f)
+                fc_result = fact_check_against_sources(data, crawled_data)
+                print_fact_check_report(fc_result)
+            else:
+                print(f"[事实核查] 跳过素材库比对：采集缓存不是当天生成（{cache_date}）")
 
         # 去重记录
         mark_dedup_pending(sections)

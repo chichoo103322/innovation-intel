@@ -178,7 +178,7 @@ def validate_report(data: dict, report_type: str = "weekly") -> tuple[list, list
                     warnings.append(f"{prefix} 摘要含禁用词「{phrase}」")
 
             # ── 6. 创新洞察深度校验 ──
-            _validate_insight_depth(prefix, insight, summary, industry_coverage, errors, warnings)
+            _validate_insight_depth(prefix, insight_raw, summary, industry_coverage, errors, warnings)
 
             all_insights.append(insight)
 
@@ -187,7 +187,7 @@ def validate_report(data: dict, report_type: str = "weekly") -> tuple[list, list
                 if len(summary) < 60:
                     warnings.append(f"{prefix} 摘要过短（{len(summary)}字），应≥80字")
                 elif len(summary) > 150:
-                    warnings.append(f"{prefix} 摘要过长（{len(summary)}字），应≤120字")
+                    warnings.append(f"{prefix} 摘要过长（{len(summary)}字），建议80-120字，最多150字")
 
     # ── 8. 板块级校验 ──
     for section in sections:
@@ -230,6 +230,10 @@ def validate_report(data: dict, report_type: str = "weekly") -> tuple[list, list
     # ── 11. 条目数校验 ──
     if report_type == "weekly":
         min_items, max_items = 8, 16
+    elif report_type == "daily":
+        # 日报受“当日发布”硬约束影响，允许 4-8 条甚至空板块；
+        # 不用 8 条下限逼迫代理拿旧闻或低质量来源充数。
+        min_items, max_items = 4, 12
     else:
         min_items, max_items = 8, 12
     if total_items < min_items:
@@ -388,23 +392,33 @@ def _check_number_precision(prefix: str, summary: str, insight: str, title: str,
             pass
 
 
-def _validate_insight_depth(prefix: str, insight: str, summary: str,
+def _validate_insight_depth(prefix: str, insight: str | list, summary: str,
                             industry_coverage: set, errors: list, warnings: list):
     """检查创新洞察的深度"""
-    if not insight or len(insight) < 30:
-        errors.append(f"{prefix} 创新洞察为空或过短（{len(insight) if insight else 0}字）")
+    if isinstance(insight, list):
+        insight_parts = [str(x).strip() for x in insight if str(x).strip()]
+        insight_text = " | ".join(insight_parts)
+    else:
+        insight_text = str(insight or "").strip()
+        insight_parts = [insight_text] if insight_text else []
+
+    if not insight_text or len(insight_text) < 30:
+        errors.append(f"{prefix} 创新洞察为空或过短（{len(insight_text) if insight_text else 0}字）")
         return
 
-    # 字数检查
-    if len(insight) < 80:
-        warnings.append(f"{prefix} 创新洞察偏短（{len(insight)}字），建议120-200字")
-    elif len(insight) > 220:
-        warnings.append(f"{prefix} 创新洞察过长（{len(insight)}字），应≤220字，精简直击要点")
+    # 字数检查：如果是 A/B/C 三版洞察，逐版检查，不按合并总长度误报。
+    for idx, part in enumerate(insight_parts, start=1):
+        plain = re.sub(r"^(方案[A-C]|[abcABC])[.．、:：\s-]*", "", part).strip()
+        label = f"方案{idx}" if len(insight_parts) > 1 else "创新洞察"
+        if len(plain) < 80:
+            warnings.append(f"{prefix} {label}偏短（{len(plain)}字），建议120-200字")
+        elif len(plain) > 220:
+            warnings.append(f"{prefix} {label}过长（{len(plain)}字），应≤220字，精简直击要点")
 
     # 必须包含的关键词维度检查
     matched_dimensions = []
     for dim, keywords in INSIGHT_REQUIRED_KEYWORDS.items():
-        if any(kw in insight or kw in summary for kw in keywords):
+        if any(kw in insight_text or kw in summary for kw in keywords):
             matched_dimensions.append(dim)
 
     if len(matched_dimensions) < 3:

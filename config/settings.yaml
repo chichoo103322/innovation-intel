@@ -77,7 +77,7 @@ focus_regions:
 # ---- 日报生成规则 ----
 daily:
   max_items_per_dimension: 3
-  total_items_min: 8
+  total_items_min: 4
   total_items_max: 12
   require_insight: true
   require_source_link: true
