@@ -57,6 +57,11 @@ def main():
     total_items = sum(len(s.get("items", [])) for s in data.get("sections", []))
     print(f"[读入] {total_items} 条信息，分布在 {len(data.get('sections', []))} 个板块")
 
+    # 校验
+    from validate_report import validate_report, print_validation_report
+    errors, warnings = validate_report(data, "weekly")
+    print_validation_report(errors, warnings)
+
     # 生成 HTML → PDF
     from build_weekly_pdf import build_weekly_html
     from generate_html_pdf import html_to_pdf, get_issue_numbers
