@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 from datetime import date
+from typing import Optional
 
 PROJECT_DIR = Path(__file__).parent.parent
 SCRIPT_DIR = Path(__file__).parent
@@ -921,22 +922,67 @@ def build_html(data: dict, issue_no: int, total_no: int, date_cn: str) -> str:
 
 # ── 共享 PDF 渲染 ──────────────────────────────────────
 
+def find_browser_executable() -> Optional[Path]:
+    """自动发现 Chrome 或 Chromium，支持 macOS、Windows 与 Linux。"""
+    import os
+    import shutil
+
+    configured = os.environ.get("REPORT_BROWSER_PATH")
+    if configured and Path(configured).is_file():
+        return Path(configured)
+
+    candidates = [
+        Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"),
+        Path("/Applications/Chromium.app/Contents/MacOS/Chromium"),
+    ]
+    for variable in ("PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA"):
+        base = os.environ.get(variable)
+        if base:
+            candidates.extend([
+                Path(base) / "Google/Chrome/Application/chrome.exe",
+                Path(base) / "Chromium/Application/chrome.exe",
+            ])
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    for name in ("google-chrome", "google-chrome-stable", "chromium", "chromium-browser",
+                 "chrome", "chrome.exe"):
+        if executable := shutil.which(name):
+            return Path(executable)
+    return None
+
+
 def html_to_pdf(html: str, pdf_path: Path) -> Path:
-    """Chrome headless HTML → PDF"""
-    import subprocess, tempfile, os
+    """通过已安装的 Chrome 或 Chromium 无头渲染 HTML 为 PDF。"""
+    import os
+    import subprocess
+    import tempfile
+
+    browser = find_browser_executable()
+    if browser is None:
+        raise RuntimeError(
+            "未找到可用浏览器。请安装 Google Chrome 或 Chromium；"
+            "也可用 REPORT_BROWSER_PATH 指定浏览器可执行文件。"
+        )
     pdf_path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False, encoding="utf-8")
-    tmp.write(html)
-    tmp.close()
-    chrome = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    subprocess.run([
-        chrome, "--headless", "--disable-gpu", "--no-sandbox",
-        "--no-pdf-header-footer",
-        f"--print-to-pdf={pdf_path}",
-        f"file://{tmp.name}"
-    ], check=True, capture_output=True, timeout=30)
-    os.unlink(tmp.name)
-    return pdf_path
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False, encoding="utf-8") as tmp:
+        tmp.write(html)
+        html_path = Path(tmp.name)
+    try:
+        pdf_path.unlink(missing_ok=True)
+        result = subprocess.run(
+            [str(browser), "--headless", "--disable-gpu", "--no-sandbox",
+             "--no-pdf-header-footer", f"--print-to-pdf={pdf_path}", html_path.as_uri()],
+            check=False, capture_output=True, text=True, timeout=60,
+        )
+        if result.returncode != 0 or not pdf_path.exists() or pdf_path.stat().st_size < 1024:
+            detail = (result.stderr or result.stdout).strip()[-500:]
+            raise RuntimeError(
+                f"{browser.name} PDF 渲染失败：{detail or f'退出码 {result.returncode}'}"
+            )
+        return pdf_path
+    finally:
+        html_path.unlink(missing_ok=True)
 
 
 # ── 日报 HTML ──────────────────────────────────────────

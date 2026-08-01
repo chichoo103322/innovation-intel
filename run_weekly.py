@@ -10,6 +10,7 @@ JSON 数据 → HTML → PDF → 分发
 """
 import sys
 import json
+import re
 from pathlib import Path
 from datetime import datetime
 
@@ -20,12 +21,42 @@ WEEKLY_DIR = PROJECT_DIR / "weekly"
 sys.path.insert(0, str(SCRIPT_DIR))
 
 
+def _extract_issue_from_html(path: Path) -> int:
+    try:
+        match = re.search(r"第\s*(\d+)\s*期", path.read_text(encoding="utf-8"))
+        return int(match.group(1)) if match else 0
+    except (OSError, ValueError):
+        return 0
+
+
+def _auto_issue_for_date(report_date: datetime) -> int:
+    """同一报告日期复用期号；新日期才按历史周报顺延。"""
+    current = WEEKLY_DIR / f"创新常州·对标快讯_周报_{report_date:%Y%m%d}.html"
+    existing = _extract_issue_from_html(current) if current.exists() else 0
+    if existing > 0:
+        return existing
+    return max(
+        (_extract_issue_from_html(path)
+         for path in WEEKLY_DIR.glob("创新常州·对标快讯_周报_*.html")),
+        default=0,
+    ) + 1
+
+
+def _last_generated_issue() -> int:
+    return max(
+        (_extract_issue_from_html(path)
+         for path in WEEKLY_DIR.glob("创新常州·对标快讯_周报_*.html")),
+        default=0,
+    )
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="《创新常州·对标快讯》周报生成")
     parser.add_argument("--json", type=str, default="", help="指定周报 JSON 文件")
     parser.add_argument("--skip-distribute", action="store_true", help="跳过桌面分发")
     parser.add_argument("--force", action="store_true", help="强制生成（跳过周五检测）")
+    parser.add_argument("--issue", type=int, default=0, help="手动指定期号；默认按报告日期自动确定")
     args = parser.parse_args()
 
     print("=" * 60)
@@ -33,6 +64,9 @@ def main():
     print("=" * 60)
 
     today = datetime.now()
+    WEEKLY_DIR.mkdir(parents=True, exist_ok=True)
+    historical_issue = _last_generated_issue()
+    print(f"[最近一期] 第{historical_issue}期" if historical_issue else "[最近一期] 暂无已生成周报")
 
     # 非周五提醒
     if today.weekday() != 4 and not args.force:
@@ -64,22 +98,16 @@ def main():
 
     # 生成 HTML → PDF
     from build_weekly_pdf import build_weekly_html
-    from generate_html_pdf import html_to_pdf, get_issue_numbers
+    from generate_html_pdf import html_to_pdf
 
     date_cn = today.strftime("%Y年%m月%d日")
-    issue, total = get_issue_numbers()
+    issue = args.issue if args.issue > 0 else _auto_issue_for_date(today)
+    total = issue
     html = build_weekly_html(data, date_cn, issue, total)
 
     date_stem = today.strftime("%Y%m%d")
     output_pdf = WEEKLY_DIR / f"创新常州·对标快讯_周报_{date_stem}.pdf"
     output_pdf = html_to_pdf(html, output_pdf)
-
-    # 同时保存到桌面
-    desktop_dir = Path.home() / "Desktop" / "创新情报" / "周报"
-    desktop_dir.mkdir(parents=True, exist_ok=True)
-    desktop_pdf = desktop_dir / f"创新常州·对标快讯_周报_{date_stem}.pdf"
-    import shutil
-    shutil.copy2(str(output_pdf), str(desktop_pdf))
 
     # 保存 HTML
     html_path = WEEKLY_DIR / f"创新常州·对标快讯_周报_{date_stem}.html"
@@ -89,11 +117,14 @@ def main():
     if not args.skip_distribute:
         sys.path.insert(0, str(SCRIPT_DIR))
         from distribute import save_desktop
-        save_desktop(str(output_pdf), "weekly")
+        desktop_pdf = save_desktop(str(output_pdf), "weekly")
+    else:
+        desktop_pdf = None
 
     print(f"\n[完成] 周报已生成:")
     print(f"  PDF: {output_pdf}")
-    print(f"  桌面: {desktop_pdf}")
+    if desktop_pdf:
+        print(f"  桌面: {desktop_pdf}")
     print(f"  期号: 2026年第{issue}期 / 总第{total}期")
     print("=" * 60)
 

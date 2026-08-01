@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 data = {
   "sections": [
@@ -88,7 +89,7 @@ data = {
   ]
 }
 
-with open('/Users/jzxzhou/innovation-intel/daily/report_data_2026-07-16.json', 'w', encoding='utf-8') as f:
+with open(Path(__file__).parent / 'daily' / 'report_data_2026-07-16.json', 'w', encoding='utf-8') as f:
     json.dump(data, f, ensure_ascii=False, indent=2)
 
 total = sum(len(s['items']) for s in data['sections'])

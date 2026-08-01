@@ -13,6 +13,7 @@ JSON 数据 → HTML → PDF → 分发
 import sys
 import json
 import argparse
+import re
 from pathlib import Path
 from datetime import datetime
 
@@ -175,6 +176,30 @@ def do_distribute(file_path: str):
     print("=== 分发完成 ===")
 
 
+def _extract_issue_from_html(path: Path) -> int:
+    """从已生成日报读取期号；旧文件或损坏文件返回 0。"""
+    try:
+        match = re.search(r"第\s*(\d+)\s*期", path.read_text(encoding="utf-8"))
+        return int(match.group(1)) if match else 0
+    except (OSError, ValueError):
+        return 0
+
+
+def _last_generated_issue(daily_dir: Path) -> int:
+    """返回历史日报中最大的有效期号，供启动提示和新日期顺延使用。"""
+    return max(
+        (_extract_issue_from_html(path) for path in daily_dir.glob("创新常州·对标快讯_????-??-??.html")),
+        default=0,
+    )
+
+
+def _auto_issue_for_date(daily_dir: Path, report_date: datetime) -> int:
+    """同一报告日期复用期号；只有新日期才按已生成日报顺延。"""
+    current = daily_dir / f"创新常州·对标快讯_{report_date:%Y-%m-%d}.html"
+    existing = _extract_issue_from_html(current) if current.exists() else 0
+    return existing if existing > 0 else _last_generated_issue(daily_dir) + 1
+
+
 # ---------------------------------------------------------------------------
 # 主流程
 # ---------------------------------------------------------------------------
@@ -200,6 +225,9 @@ def main():
     today = datetime.now()
     today_stem = today.strftime("%Y-%m-%d")
     daily_dir = PROJECT_DIR / "daily"
+    daily_dir.mkdir(parents=True, exist_ok=True)
+    last_issue = _last_generated_issue(daily_dir)
+    print(f"[最近一期] 第{last_issue}期" if last_issue else "[最近一期] 暂无已生成日报")
 
     # 周末自动跳过
     if today.weekday() >= 5 and not args.force and not args.collect:
@@ -260,7 +288,7 @@ def main():
 
         # 生成 HTML → PDF
         from generate_html_pdf import build_daily_html, html_to_pdf
-        issue = args.issue
+        issue = args.issue if args.issue > 0 else _auto_issue_for_date(daily_dir, today)
         total = issue  # 总期数 = 当期期号
         date_cn = today.strftime("%Y年%m月%d日")
         html = build_daily_html(data, date_cn, issue, total)
@@ -288,7 +316,7 @@ def main():
         template = {
             "sections": [
                 {"name": d, "items": [
-                    {"title": "", "date": "", "summary": "", "insight": ["方案A：", "方案B：", "方案C："], "source": "", "url": ""}
+                    {"title": "", "date": "", "summary": "", "insight": ["", "", ""], "source": "", "url": ""}
                 ]} for d in all_dimensions
             ]
         }
@@ -310,7 +338,8 @@ def main():
         print(f"[示例] {total_items} 条示例信息")
 
         today_pdf = daily_dir / f'创新常州·对标快讯_{today_stem}.pdf'
-        issue, total = get_issue_numbers()
+        issue = _auto_issue_for_date(daily_dir, today)
+        total = issue
         date_cn = today.strftime("%Y年%m月%d日")
         html = build_daily_html(data, date_cn, issue, total)
         pdf_path = html_to_pdf(html, today_pdf)

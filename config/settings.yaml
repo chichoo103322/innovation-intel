@@ -81,7 +81,7 @@ daily:
   total_items_max: 12
   require_insight: true
   require_source_link: true
-  insight_count: 3  # 每条出3版洞察（方案A/B/C）
+  insight_count: 3  # 每条出3版洞察，不带方案标签
 
 # ---- 周报生成规则 ----
 weekly:

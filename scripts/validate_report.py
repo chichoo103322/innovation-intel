@@ -97,9 +97,15 @@ def validate_report(data: dict, report_type: str = "weekly") -> tuple[list, list
     today = datetime.now()
 
     sections = data.get("sections", [])
-    if not sections:
+    flat_items = data.get("items", [])  # V2 新格式：扁平政策列表
+
+    if not sections and not flat_items:
         errors.append("[板块] 报告无任何板块数据，生成失败")
         return errors, warnings
+
+    # ── V2 格式：扁平政策列表，包装为虚拟板块进行校验 ──
+    if flat_items and not sections:
+        sections = [{"name": "本周科技创新政策", "items": flat_items}]
 
     # ── 逐板块、逐条目校验 ──
     all_urls = []
