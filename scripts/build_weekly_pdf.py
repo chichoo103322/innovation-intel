@@ -181,7 +181,7 @@ def build_weekly_html_v2(data, date_cn, issue_no, total_no):
 <div class="cover">
   <div class="cover-inner">
     <div class="cover-left">
-      <h1>创新常州·对标快讯</h1>
+      <h1>创新政策·对标快讯</h1>
       <p class="cover-sub">Innovation Changzhou · Weekly Policy Watch</p>
     </div>
     <div class="cover-right">
@@ -192,7 +192,7 @@ def build_weekly_html_v2(data, date_cn, issue_no, total_no):
 </div>
 
 <div class="running-header">
-  <span>创新常州·对标快讯</span>
+  <span>创新政策·对标快讯</span>
   <span>2026年第{issue_no}期</span>
 </div>
 
@@ -296,6 +296,11 @@ def build_weekly_html(data, date_cn, issue_no, total_no):
             else:
                 txt = str(s)
             suggestions_html += f'<p class="suggestion-item">{i+1}. {txt}</p>\n'
+
+    # ── 条件区块：无内容不渲染 ──
+    overview_block = f'<h2 class="section-title">本周综述</h2>\n  <div class="overview">{overview_text}</div>' if overview_text.strip() else ""
+    has_pre_content = bool(overview_block or trends_html or suggestions_html)
+    page_break = '<div style="page-break-before: always;"></div>' if has_pre_content else ""
 
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -460,7 +465,7 @@ def build_weekly_html(data, date_cn, issue_no, total_no):
 <div class="cover">
   <div class="cover-inner">
     <div class="cover-left">
-      <h1>创新常州·对标快讯</h1>
+      <h1>创新政策·对标快讯</h1>
       <p class="cover-sub">Innovation Changzhou · Benchmarking Weekly</p>
     </div>
     <div class="cover-right">
@@ -471,19 +476,18 @@ def build_weekly_html(data, date_cn, issue_no, total_no):
 </div>
 
 <div class="running-header">
-  <span>创新常州·对标快讯</span>
+  <span>创新政策·对标快讯</span>
   <span>2026年第{issue_no}期</span>
 </div>
 
 <div class="content">
-  <h2 class="section-title">本周综述</h2>
-  <div class="overview">{overview_text}</div>
+  {overview_block}
 
   {trends_html}
 
   {suggestions_html}
 
-  <div style="page-break-before: always;"></div>
+  {page_break}
 
   {sections_html}
 </div>
@@ -502,7 +506,7 @@ def main():
 
     html = build_weekly_html(data, date_cn, issue, total)
 
-    output_pdf = Path.home() / "Desktop/创新情报/周报/创新常州·对标快讯_周报_20260706.pdf"
+    output_pdf = Path.home() / "Desktop/创新情报/周报/创新政策·对标快讯_周报_20260706.pdf"
     output_pdf.parent.mkdir(parents=True, exist_ok=True)
 
     result = html_to_pdf(html, output_pdf)

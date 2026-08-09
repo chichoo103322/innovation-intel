@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-《创新常州·对标快讯》周报自动生成
+《创新政策·对标快讯》周报自动生成
 JSON 数据 → HTML → PDF → 分发
 
 用法:
@@ -31,13 +31,13 @@ def _extract_issue_from_html(path: Path) -> int:
 
 def _auto_issue_for_date(report_date: datetime) -> int:
     """同一报告日期复用期号；新日期才按历史周报顺延。"""
-    current = WEEKLY_DIR / f"创新常州·对标快讯_周报_{report_date:%Y%m%d}.html"
+    current = WEEKLY_DIR / f"创新政策·对标快讯_周报_{report_date:%Y%m%d}.html"
     existing = _extract_issue_from_html(current) if current.exists() else 0
     if existing > 0:
         return existing
     return max(
         (_extract_issue_from_html(path)
-         for path in WEEKLY_DIR.glob("创新常州·对标快讯_周报_*.html")),
+         for path in WEEKLY_DIR.glob("创新政策·对标快讯_周报_*.html")),
         default=0,
     ) + 1
 
@@ -45,14 +45,14 @@ def _auto_issue_for_date(report_date: datetime) -> int:
 def _last_generated_issue() -> int:
     return max(
         (_extract_issue_from_html(path)
-         for path in WEEKLY_DIR.glob("创新常州·对标快讯_周报_*.html")),
+         for path in WEEKLY_DIR.glob("创新政策·对标快讯_周报_*.html")),
         default=0,
     )
 
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="《创新常州·对标快讯》周报生成")
+    parser = argparse.ArgumentParser(description="《创新政策·对标快讯》周报生成")
     parser.add_argument("--json", type=str, default="", help="指定周报 JSON 文件")
     parser.add_argument("--skip-distribute", action="store_true", help="跳过桌面分发")
     parser.add_argument("--force", action="store_true", help="强制生成（跳过周五检测）")
@@ -60,7 +60,7 @@ def main():
     args = parser.parse_args()
 
     print("=" * 60)
-    print("  创新常州·对标快讯 — 周报自动生成（JSON → HTML → PDF）")
+    print("  创新政策·对标快讯 — 周报自动生成（JSON → HTML → PDF）")
     print("=" * 60)
 
     today = datetime.now()
@@ -106,11 +106,11 @@ def main():
     html = build_weekly_html(data, date_cn, issue, total)
 
     date_stem = today.strftime("%Y%m%d")
-    output_pdf = WEEKLY_DIR / f"创新常州·对标快讯_周报_{date_stem}.pdf"
+    output_pdf = WEEKLY_DIR / f"创新政策·对标快讯_周报_{date_stem}.pdf"
     output_pdf = html_to_pdf(html, output_pdf)
 
     # 保存 HTML
-    html_path = WEEKLY_DIR / f"创新常州·对标快讯_周报_{date_stem}.html"
+    html_path = WEEKLY_DIR / f"创新政策·对标快讯_周报_{date_stem}.html"
     html_path.write_text(html, encoding="utf-8")
 
     # 分发
